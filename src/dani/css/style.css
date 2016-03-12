@@ -1,0 +1,9 @@
+.button {
+ -fx-background-color: green;
+ -fx-background-radius: 100;
+ /*-fx-background-image: url(http://patrickhansen.com/b2evo/media/design/Fireworks_scaleAttributes1.png);*/
+ -fx-border-color: blue;
+
+
+ }
+ 

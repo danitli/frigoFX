@@ -38,6 +38,8 @@ public class AplicacionPrincipal extends Application {
 
             // Show the scene containing the root layout.
             Scene scene = new Scene(rootLayout);
+            scene.getStylesheets().add("dani/css/style.css");
+            //scene.getStylesheets().add(getClass().getResource("css/style.css").toExternalForm());
             primaryStage.setScene(scene);
             primaryStage.show();
         } catch (IOException e) {
