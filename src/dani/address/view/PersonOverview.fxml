@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.scene.text.*?>
 <?import javafx.scene.*?>
 <?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
@@ -7,14 +8,13 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.layout.AnchorPane?>
 
-
-<AnchorPane prefHeight="300.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="dani.address.view.PersonOverviewController">
+<AnchorPane prefHeight="300.0" prefWidth="600.0" stylesheets="@DarkTheme.css" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="dani.address.view.PersonOverviewController">
    <children>
       <SplitPane dividerPositions="0.29797979797979796" layoutX="178.0" layoutY="42.0" prefHeight="300.0" prefWidth="600.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
         <items>
-          <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
+          <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0" stylesheets="@DarkTheme.css">
                <children>
-                  <TableView fx:id="personTable" layoutX="-4.0" layoutY="14.0" prefHeight="298.0" prefWidth="175.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                  <TableView fx:id="personTable" layoutX="-8.0" layoutY="14.0" prefHeight="299.0" prefWidth="183.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="-8.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                     <columns>
                       <TableColumn fx:id="firstNameColumn" prefWidth="75.0" text="Nombre" />
                       <TableColumn fx:id="lastNameColumn" prefWidth="75.0" text="Apellido" />
@@ -25,12 +25,15 @@
                   </TableView>
                </children>
             </AnchorPane>
-          <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
+          <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0" styleClass="background">
                <children>
-                  <Label layoutX="14.0" layoutY="14.0" text="Datos Personales" AnchorPane.leftAnchor="5.0" AnchorPane.topAnchor="5.0">
+                  <Label layoutX="14.0" layoutY="14.0" style="-fx-font-size: 20;" styleClass="label-header" stylesheets="@DarkTheme.css" text="Datos Personales" textFill="#dd0909" AnchorPane.leftAnchor="5.0" AnchorPane.topAnchor="5.0">
                      <padding>
                         <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
                      </padding>
+                     <font>
+                        <Font size="10.0" />
+                     </font>
                   </Label>
                   <GridPane layoutX="5.0" layoutY="32.0" AnchorPane.leftAnchor="5.0" AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="32.0">
                     <columnConstraints>
@@ -52,21 +55,20 @@
                         <Label text="Ciudad" GridPane.rowIndex="3" />
                         <Label text="Codigo Postal" GridPane.rowIndex="4" />
                         <Label text="Cumpleaños" GridPane.rowIndex="5" />
-                        <Label fx:id="firstNameLabel" text="Label" GridPane.columnIndex="1" />
-                        <Label fx:id="lastNameLabel" text="Label" GridPane.columnIndex="1" GridPane.rowIndex="1" />
-                        <Label fx:id="streetLabel" text="Label" GridPane.columnIndex="1" GridPane.rowIndex="2" />
-                        <Label fx:id="cityLabel" text="Label" GridPane.columnIndex="1" GridPane.rowIndex="3" />
-                        <Label fx:id="postalCodeLabel" text="Label" GridPane.columnIndex="1" GridPane.rowIndex="4" />
-                        <Label fx:id="birthdayLabel" text="Label" GridPane.columnIndex="1" GridPane.rowIndex="5" />
+                        <Label fx:id="firstNameLabel" styleClass="label-bright" text="Label" GridPane.columnIndex="1" />
+                        <Label fx:id="lastNameLabel" styleClass="label-bright" text="Label" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                        <Label fx:id="streetLabel" styleClass="label-bright" text="Label" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                        <Label fx:id="cityLabel" styleClass="label-bright" text="Label" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+                        <Label fx:id="postalCodeLabel" styleClass="label-bright" text="Label" GridPane.columnIndex="1" GridPane.rowIndex="4" />
+                        <Label fx:id="birthdayLabel" styleClass="label-bright" text="Label" GridPane.columnIndex="1" GridPane.rowIndex="5" />
                      </children>
                   </GridPane>
-                  <Button layoutX="209.0" layoutY="259.0" mnemonicParsing="false" text="Nuevo..." />
-                  <Button layoutX="281.0" layoutY="259.0" mnemonicParsing="false" text="Editar..." />
-                  <Button layoutX="351.0" layoutY="259.0" mnemonicParsing="false" text="Borrar" />
+                  <Button layoutX="84.0" layoutY="259.0" mnemonicParsing="false" onAction="#handleNewPerson" prefHeight="33.0" prefWidth="106.0" text="Nuevo..." />
+                  <Button layoutX="198.0" layoutY="259.0" mnemonicParsing="false" onAction="#handleEditPerson" text="Editar..." />
+                  <Button layoutX="301.0" layoutY="259.0" mnemonicParsing="false" onAction="#handleDeletePerson" text="Borrar" />
                </children>
             </AnchorPane>
         </items>
       </SplitPane>
    </children>
 </AnchorPane>
-
