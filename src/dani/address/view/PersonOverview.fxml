@@ -66,6 +66,8 @@
                   <Button layoutX="84.0" layoutY="259.0" mnemonicParsing="false" onAction="#handleNewPerson" prefHeight="33.0" prefWidth="106.0" text="Nuevo..." />
                   <Button layoutX="198.0" layoutY="259.0" mnemonicParsing="false" onAction="#handleEditPerson" text="Editar..." />
                   <Button layoutX="301.0" layoutY="259.0" mnemonicParsing="false" onAction="#handleDeletePerson" text="Borrar" />
+                  <ComboBox fx:id="especie" layoutX="9.0" layoutY="221.0" onShown="#cargarComboEspecie" prefWidth="150.0" promptText="Combo Especie" />
+                  <Button layoutX="14.0" layoutY="259.0" mnemonicParsing="false" onAction="#handleGuardarTropa" text="Guardar" />
                </children>
             </AnchorPane>
         </items>
