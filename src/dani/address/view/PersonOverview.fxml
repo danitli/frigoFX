@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.scene.effect.*?>
 <?import javafx.scene.text.*?>
 <?import javafx.scene.*?>
 <?import javafx.geometry.*?>
@@ -66,8 +67,9 @@
                   <Button layoutX="84.0" layoutY="259.0" mnemonicParsing="false" onAction="#handleNewPerson" prefHeight="33.0" prefWidth="106.0" text="Nuevo..." />
                   <Button layoutX="198.0" layoutY="259.0" mnemonicParsing="false" onAction="#handleEditPerson" text="Editar..." />
                   <Button layoutX="301.0" layoutY="259.0" mnemonicParsing="false" onAction="#handleDeletePerson" text="Borrar" />
-                  <ComboBox fx:id="especie" layoutX="9.0" layoutY="221.0" onShown="#cargarComboEspecie" prefWidth="150.0" promptText="Combo Especie" />
+                  <ComboBox fx:id="especie" layoutX="9.0" layoutY="221.0" onShown="#cargarComboEspecie" prefWidth="150.0" promptText="Seleccione Especie..." />
                   <Button layoutX="14.0" layoutY="259.0" mnemonicParsing="false" onAction="#handleGuardarTropa" text="Guardar" />
+                  <ComboBox fx:id="procedencia" layoutX="179.0" layoutY="221.0" onShown="#cargarComboProcedencia" prefWidth="150.0" promptText="Seleccione Procedencia..." />
                </children>
             </AnchorPane>
         </items>

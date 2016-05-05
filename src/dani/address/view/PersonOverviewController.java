@@ -5,12 +5,9 @@ import java.io.DataOutputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
-import javax.net.ssl.HttpsURLConnection;
 
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
@@ -18,6 +15,7 @@ import com.google.gson.Gson;
 import dani.address.MainApp;
 import dani.address.model.Person;
 import dani.address.model.bean.especie.EspecieBean;
+import dani.address.model.bean.procedencia.ProcedenciaBean;
 import dani.address.model.bean.tropa.TropaBean;
 import dani.address.util.DateUtil;
 import javafx.collections.FXCollections;
@@ -27,11 +25,11 @@ import javafx.concurrent.WorkerStateEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
-import javafx.scene.control.Alert.AlertType;
-import javafx.scene.control.ComboBox;
 
 public class PersonOverviewController {
 	
@@ -56,13 +54,18 @@ public class PersonOverviewController {
     private Label birthdayLabel;
     
     @FXML
-    private ComboBox especie;
+    private ComboBox<EspecieBean> especie;
+    
+    @FXML
+    private ComboBox<ProcedenciaBean> procedencia;
 
     // Reference to the main application.
     private MainApp mainApp;
     
 	private ObservableList<EspecieBean> especieList;
-	private static final String JSON_URL = "http://localhost:8080/frigorifico/rest/especies";
+	private ObservableList<ProcedenciaBean> procedenciaList;
+	private static final String JSON_URL_ESPECIES = "http://localhost:8080/frigorifico/rest/especies";
+	private static final String JSON_URL_PROCEDENCIAS = "http://localhost:8080/frigorifico/rest/procedencias";
 	private static final String JSON_URL_GUARDAR_TROPA  = "http://localhost:8080/frigorifico/rest/nueva_tropa_en_palco";
 	private final ExecutorService executorService = Executors.newCachedThreadPool();
 	private TropaBean tropaBean = new TropaBean();
@@ -186,13 +189,17 @@ public class PersonOverviewController {
     @FXML
     private void handleGuardarTropa() {
         EspecieBean selectedEspecieBean = (EspecieBean) especie.getSelectionModel().getSelectedItem();
+        ProcedenciaBean selectedProcedenciaBean = (ProcedenciaBean) procedencia.getSelectionModel().getSelectedItem();
         
-        if (selectedEspecieBean != null) {
+        if ((selectedEspecieBean != null) && (selectedProcedenciaBean != null)){
         	
         	tropaBean.setEspecieId(selectedEspecieBean.getIdEspecie());
+        	tropaBean.setProcendeciaId(selectedProcedenciaBean.getIdProcedencia());
         	tropaBean.setAnimalesRecibidos(140);
         	tropaBean.setEstablecimientoId(1);
-        	tropaBean.setProcendeciaId(1);
+        	System.out.println("especie id: " + selectedEspecieBean.getIdEspecie());
+        	System.out.println("procedencia id: " + selectedProcedenciaBean.getIdProcedencia());
+        	System.out.println(procedencia.getSelectionModel().getSelectedItem());
         	
         	System.out.println(tropaBean);
         	
@@ -216,7 +223,6 @@ public class PersonOverviewController {
         	alert.showAndWait();
         }
     }
-    
     
    
     /**
@@ -303,7 +309,22 @@ public class PersonOverviewController {
 			List<EspecieBean> list = null;
 			try {
 				Gson gson = new Gson();
-				list = new Gson().fromJson(readUrl(JSON_URL), new TypeToken<List<EspecieBean>>() {
+				list = new Gson().fromJson(readUrl(JSON_URL_ESPECIES), new TypeToken<List<EspecieBean>>() {
+				}.getType());
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			return list;
+		}
+	};
+	
+	private Task<List<ProcedenciaBean>> fetchListProcedencia = new Task<List<ProcedenciaBean>>() {
+		@Override
+		protected List<ProcedenciaBean> call() throws Exception {
+			List<ProcedenciaBean> list = null;
+			try {
+				Gson gson = new Gson();
+				list = gson.fromJson(readUrl(JSON_URL_PROCEDENCIAS), new TypeToken<List<ProcedenciaBean>>() {
 				}.getType());
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -323,7 +344,7 @@ public class PersonOverviewController {
 			
 			try {
 				Gson gson = new Gson();
-				tropaBean = new Gson().fromJson(writeUrl(JSON_URL_GUARDAR_TROPA), new TypeToken<TropaBean>() {
+				tropaBean = gson.fromJson(writeUrl(JSON_URL_GUARDAR_TROPA), new TypeToken<TropaBean>() {
 				}.getType());
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -332,6 +353,8 @@ public class PersonOverviewController {
 		}
 	};
     
+	
+	
     @FXML
     private void cargarComboEspecie(){
     	executorService.submit(fetchList);
@@ -347,5 +370,26 @@ public class PersonOverviewController {
 		});
 
     }
+    
+    @FXML
+    private void cargarComboProcedencia(){
+    	executorService.submit(fetchListProcedencia);
+    	fetchListProcedencia.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
+			@Override
+			public void handle(WorkerStateEvent t) {
+				procedenciaList = FXCollections.observableArrayList(fetchListProcedencia.getValue());
+				System.out.println(procedenciaList);
+				
+				System.out.println("Lista de procedencias ======="  );
+				for (ProcedenciaBean procedenciaBean : procedenciaList) {
+					System.out.println("Procedencia: " + procedenciaBean.getIdProcedencia() + " - " + procedenciaBean.getDescripcion());
+				}
+				procedencia.setItems(procedenciaList);
+				
+			}
+		});
+
+    }
+    
 
 }
