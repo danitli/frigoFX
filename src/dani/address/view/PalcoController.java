@@ -13,9 +13,9 @@ import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 
 import dani.address.AplicacionPrincipalPalco;
-import dani.address.model.bean.especie.EspecieBean;
-import dani.address.model.bean.procedencia.ProcedenciaBean;
-import dani.address.model.bean.tropa.TropaBean;
+import bean.especie.EspecieBean;
+import bean.procedencia.ProcedenciaBean;
+import bean.tropa.TropaBean;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;

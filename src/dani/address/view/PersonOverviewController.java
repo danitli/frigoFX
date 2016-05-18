@@ -14,9 +14,9 @@ import com.google.gson.Gson;
 
 import dani.address.MainApp;
 import dani.address.model.Person;
-import dani.address.model.bean.especie.EspecieBean;
-import dani.address.model.bean.procedencia.ProcedenciaBean;
-import dani.address.model.bean.tropa.TropaBean;
+import bean.especie.EspecieBean;
+import bean.procedencia.ProcedenciaBean;
+import bean.tropa.TropaBean;
 import dani.address.util.DateUtil;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
