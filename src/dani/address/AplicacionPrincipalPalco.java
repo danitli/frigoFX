@@ -2,7 +2,6 @@ package dani.address;
 
 import java.io.IOException;
 
-import dani.address.model.Person;
 import dani.address.view.PalcoController;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
@@ -38,9 +37,10 @@ public class AplicacionPrincipalPalco extends Application {
 	
 	public void initRootLayout() {
 		try {
-			// Load root layout from fxml file.
+			//Load root layout from fxml file.
+			//FXMLLoader loader = new FXMLLoader(getClass().getResource("view/FaenaEnPalco.fxml"));
 			FXMLLoader loader = new FXMLLoader();
-			loader.setLocation(MainApp.class.getResource("view/RootLayout.fxml"));
+			loader.setLocation(AplicacionPrincipalPalco.class.getResource("view/RootLayout.fxml"));
 			rootLayout = (BorderPane) loader.load();
 
 			// Show the scene containing the root layout.
@@ -56,14 +56,17 @@ public class AplicacionPrincipalPalco extends Application {
 		try {
 			// Load person overview.
 			FXMLLoader loader = new FXMLLoader();
-			loader.setLocation(AplicacionPrincipalPalco.class.getResource("view/PantallaPalco.fxml"));
+			loader.setLocation(AplicacionPrincipalPalco.class.getResource("view/FaenaEnPalco.fxml"));
 			AnchorPane pantallaPalco = (AnchorPane) loader.load();
 
 			// Set person overview into the center of root layout.
 			rootLayout.setCenter(pantallaPalco);
 
 			// Give the controller access to the main app.
+			loader.setController(new PalcoController());
 			PalcoController controller = loader.getController();
+			System.out.println("imprimiendo loader: " + loader.getLocation());
+			System.out.println("sos nulo? " + controller);
 			controller.setMainApp(this);
 
 		} catch (IOException e) {

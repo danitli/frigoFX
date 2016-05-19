@@ -69,8 +69,7 @@ public class PalcoController {
      * @param mainApp
      */
     public void setMainApp(AplicacionPrincipalPalco aplicacionPrincipalPalco) {
-        this.aplicacionPrincipalPalco = aplicacionPrincipalPalco;
-
+      this.aplicacionPrincipalPalco = aplicacionPrincipalPalco;
     }
     
     @FXML
