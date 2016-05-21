@@ -24,6 +24,8 @@ import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.RadioButton;
+import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.Alert.AlertType;
 
 public class PalcoController {
@@ -33,7 +35,13 @@ public class PalcoController {
     
     @FXML
     private ComboBox<ProcedenciaBean> procedencia;
-
+    
+    @FXML 
+    private RadioButton rbEntera;
+    
+    @FXML 
+    private RadioButton rbAlMedio;
+    
     // Reference to the main application.
     private AplicacionPrincipalPalco aplicacionPrincipalPalco;
     
@@ -44,7 +52,9 @@ public class PalcoController {
 	private static final String JSON_URL_GUARDAR_TROPA  = "http://localhost:8080/frigorifico/rest/nueva_tropa_en_palco";
 	private final ExecutorService executorService = Executors.newCachedThreadPool();
 	private TropaBean tropaBean = new TropaBean();
-
+	
+	final ToggleGroup cabeza = new ToggleGroup();
+	
 	
 	/**
      * The constructor.
@@ -59,6 +69,11 @@ public class PalcoController {
      */
     @FXML
     private void initialize() {
+    	
+    	rbEntera.setToggleGroup(cabeza);
+    	rbEntera.setSelected(true);
+    	
+    	rbAlMedio.setToggleGroup(cabeza);
        
          
     }

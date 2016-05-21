@@ -12,63 +12,51 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.image.*?>
 
-<AnchorPane prefHeight="300.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="dani.address.view.PalcoController">
+<AnchorPane prefHeight="300.0" prefWidth="600.0" stylesheets="@DarkTheme.css" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="dani.address.view.PalcoController">
    <children>
-      <SplitPane layoutY="-2.0" prefHeight="300.0" prefWidth="600.0">
+      <SplitPane layoutY="-2.0" prefHeight="300.0" prefWidth="600.0" stylesheets="@DarkTheme.css">
          <items>
-            <SplitPane dividerPositions="0.29797979797979796" prefHeight="160.0" prefWidth="200.0">
+            <SplitPane dividerPositions="0.29797979797979796" prefHeight="363.0" prefWidth="600.0" styleClass="background">
               <items>
-                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="298.0" prefWidth="215.0" styleClass="dani/css/style.css" SplitPane.resizableWithParent="false">
+                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="298.0" prefWidth="215.0" stylesheets="@DarkTheme.css" SplitPane.resizableWithParent="false">
                      <children>
-                        <Button layoutX="21.0" layoutY="228.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="134.0" text="Inicializar Faena" />
+                        <Button layoutX="21.0" layoutY="228.0" mnemonicParsing="false" onAction="#handleGuardarTropa" prefHeight="25.0" prefWidth="134.0" text="Inicializar Faena" />
                         <Label layoutX="7.0" layoutY="141.0" text="Numero Tropa:" AnchorPane.leftAnchor="10.0" />
                         <Label layoutX="11.0" layoutY="82.0" text="Procedencia" AnchorPane.leftAnchor="10.0" />
-                        <TextField layoutX="11.0" layoutY="165.0" prefHeight="25.0" prefWidth="86.0" promptText="nro_tropa_db" AnchorPane.leftAnchor="10.0" />
+                        <TextField layoutX="11.0" layoutY="165.0" prefHeight="25.0" prefWidth="86.0" promptText="nro_tropa_db" AnchorPane.leftAnchor="10.0">
+                           <font>
+                              <Font size="10.0" />
+                           </font></TextField>
                         <Label layoutX="15.0" layoutY="14.0" text="Especie:" AnchorPane.leftAnchor="10.0" />
-                        <ComboBox fx:id="especie" layoutX="10.0" layoutY="31.0" prefWidth="150.0" AnchorPane.leftAnchor="10.0">
-							<items>
-					        <FXCollections fx:factory="observableArrayList">
-					          <String fx:value="Ovino" />
-					          <String fx:value="Porcino" />
-					          <String fx:value="Vacuno" />
-					        </FXCollections>
-					      </items>
-                           <effect>
-                              <Blend />
-                           </effect>
+                        <ComboBox fx:id="especie" layoutX="10.0" layoutY="35.0" onShown="#cargarComboEspecie" prefWidth="150.0" promptText="Seleccione Especie..." AnchorPane.leftAnchor="10.0">
+	                      
                         </ComboBox>
                         
-                        <ComboBox fx:id="procedencia" layoutX="11.0" layoutY="99.0" prefWidth="150.0" AnchorPane.leftAnchor="10.0">
-                        <items>
-					        <FXCollections fx:factory="observableArrayList">
-					          <String fx:value="Estancia" />
-					          <String fx:value="Frigorifico" />
-					          <String fx:value="..." />
-					        </FXCollections>
-					      </items>
-                        </ComboBox>                        
+                        <ComboBox fx:id="procedencia" layoutX="10.0" layoutY="103.0" onShown="#cargarComboProcedencia" prefWidth="150.0" promptText="Seleccione Procedencia..." AnchorPane.leftAnchor="10.0">
+                        </ComboBox>      
+                                          
                      </children>
                   </AnchorPane>
                   
               
-                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
+                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0" stylesheets="@DarkTheme.css">
                      <children>
                         <Label layoutX="30.0" layoutY="23.0" text="Categoría" />
                         <Label layoutX="30.0" layoutY="102.0" text="Cabeza" />
-                        <Label layoutX="29.0" layoutY="180.0" text="Nro. Garrón" />
+                        <Label layoutX="23.0" layoutY="166.0" text="Nro. Garrón" />
                         <Label layoutX="29.0" layoutY="212.0" text="Peso" />
                     
-                        <Button layoutX="35.0" layoutY="47.0" mnemonicParsing="false" styleClass="#rock" stylesheets="dani/css/style.css" text="Capon" textFill="WHITE" textOverrun="CENTER_ELLIPSIS">
+                        <Button layoutX="9.0" layoutY="47.0" mnemonicParsing="false" text="Capon" textFill="WHITE" textOverrun="CENTER_ELLIPSIS">
                          	
      					</Button>	
-                        <Button layoutX="95.0" layoutY="47.0" mnemonicParsing="false" text="Chancha" />
-                        <Button layoutX="165.0" layoutY="47.0" mnemonicParsing="false" text="Chancho" />
-                        <Button layoutX="240.0" layoutY="47.0" mnemonicParsing="false" text="..." />
-                        <RadioButton layoutX="47.0" layoutY="132.0" mnemonicParsing="false" text="Entera" />
-                        <RadioButton layoutX="141.0" layoutY="132.0" mnemonicParsing="false" text="Al medio" />
-                        <TextField layoutX="112.0" layoutY="176.0" promptText="nro_garron_automatico" />
+                        <Button layoutX="112.0" layoutY="47.0" mnemonicParsing="false" text="Chancha" />
+                        <Button layoutX="229.0" layoutY="47.0" mnemonicParsing="false" text="Chancho" />
+                        <Button layoutX="348.0" layoutY="47.0" mnemonicParsing="false" prefHeight="33.0" prefWidth="62.0" text="... " />
+                        <RadioButton fx:id="rbEntera" layoutX="47.0" layoutY="132.0" mnemonicParsing="false" text="Entera" />
+                        <RadioButton fx:id="rbAlMedio" layoutX="141.0" layoutY="132.0" mnemonicParsing="false" text="Al medio" />
+                        <TextField layoutX="106.0" layoutY="158.0" prefHeight="3.0" prefWidth="206.0" promptText="nro_garron_automatico" />
                         <TextField layoutX="75.0" layoutY="208.0" promptText="se carga a mano" />
-                        <Button layoutX="235.0" layoutY="245.0" mnemonicParsing="false" text="Imprimir Etiqueta" />
+                        <Button layoutX="242.0" layoutY="251.0" mnemonicParsing="false" text="Imprimir Etiqueta" />
                      </children>
                   </AnchorPane>
               </items>
