@@ -25,7 +25,9 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.RadioButton;
+import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleGroup;
+import tropa.TropaReservada;
 import javafx.scene.control.Alert.AlertType;
 
 public class PalcoController {
@@ -42,6 +44,9 @@ public class PalcoController {
     @FXML 
     private RadioButton rbAlMedio;
     
+    @FXML
+    private TextField numeroTropa;
+    
     // Reference to the main application.
     private AplicacionPrincipalPalco aplicacionPrincipalPalco;
     
@@ -49,7 +54,9 @@ public class PalcoController {
 	private ObservableList<ProcedenciaBean> procedenciaList;
 	private static final String JSON_URL_ESPECIES = "http://localhost:8080/frigorifico/rest/especies";
 	private static final String JSON_URL_PROCEDENCIAS = "http://localhost:8080/frigorifico/rest/procedencias";
+	private static final String JSON_URL_SIGUIENTE_NUMERO_TROPA  = "http://localhost:8080/frigorifico/rest/siguiente_tropa/";
 	private static final String JSON_URL_GUARDAR_TROPA  = "http://localhost:8080/frigorifico/rest/nueva_tropa_en_palco";
+
 	private final ExecutorService executorService = Executors.newCachedThreadPool();
 	private TropaBean tropaBean = new TropaBean();
 	
@@ -70,11 +77,20 @@ public class PalcoController {
     @FXML
     private void initialize() {
     	
+    	//Cargo Combos
+    	cargarComboEspecie();
+    	cargarComboProcedencia();
+      	
+    	//Inicio Radio buttoms
     	rbEntera.setToggleGroup(cabeza);
     	rbEntera.setSelected(true);
-    	
     	rbAlMedio.setToggleGroup(cabeza);
+    	
+    	//Cargando numero de tropa
+    	//numeroTropa.setText(siguienteNumeroTropa);
+    	
        
+    	
          
     }
 
@@ -234,6 +250,21 @@ public class PalcoController {
 		}
 	};
 	
+	private Task<TropaReservada> fetchNumeroTropa = new Task<TropaReservada>() {
+		@Override
+		protected TropaReservada call() throws Exception {
+			TropaReservada tropaReservada = null;
+			int idProcedencia = procedencia.getValue().getIdProcedencia();
+			try {
+				Gson gson = new Gson();
+				tropaReservada = gson.fromJson(readUrl(JSON_URL_SIGUIENTE_NUMERO_TROPA + idProcedencia), new TypeToken<TropaReservada>() {
+				}.getType());
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			return tropaReservada;
+		}
+	};
     /**
 	 * Task to fetch details from JSONURL
 	 * 
@@ -266,6 +297,14 @@ public class PalcoController {
 				System.out.println(especieList);
 				
 				especie.setItems(especieList);
+				System.out.println("Tamaño comboooooo" + especieList.size());
+		    	for (EspecieBean e: especieList){
+		    		System.out.println("Cargando comboooo" + e.getDescripcion());
+		    		if(e.getDescripcion().equalsIgnoreCase("Porcinos")){
+		    			especie.setValue(e);
+		    			return;
+		    		}
+		    	} 
 				
 			}
 		});
@@ -286,10 +325,46 @@ public class PalcoController {
 					System.out.println("Procedencia: " + procedenciaBean.getIdProcedencia() + " - " + procedenciaBean.getDescripcion());
 				}
 				procedencia.setItems(procedenciaList);
+				System.out.println("Tamaño comboooooo" + procedenciaList.size());
+		    	for (ProcedenciaBean e: procedenciaList){
+		    		System.out.println("Cargando comboooo" + e.getDescripcion());
+		    		if(e.getDescripcion().equalsIgnoreCase("Estancias")){
+		    			procedencia.setValue(e);
+		    			return;
+		    		}
+		    	} 
 				
 			}
 		});
 
+    }
+    
+    @FXML
+    private void calcularNumeroTropa(){
+    	executorService.submit(fetchNumeroTropa);
+    	fetchList.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
+			@Override
+			public void handle(WorkerStateEvent t) {
+				especieList = FXCollections.observableArrayList(fetchList.getValue());
+				System.out.println(especieList);
+				
+				especie.setItems(especieList);
+				System.out.println("Tamaño comboooooo" + especieList.size());
+		    	for (EspecieBean e: especieList){
+		    		System.out.println("Cargando comboooo" + e.getDescripcion());
+		    		if(e.getDescripcion().equalsIgnoreCase("Porcinos")){
+		    			especie.setValue(e);
+		    			return;
+		    		}
+		    	} 
+				
+			}
+		});
+
+    	
+    	
+    	
+    	
     }
     
 
