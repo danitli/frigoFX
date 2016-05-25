@@ -52,12 +52,13 @@ public class PalcoController {
     
 	private ObservableList<EspecieBean> especieList;
 	private ObservableList<ProcedenciaBean> procedenciaList;
+	private TropaReservada tropaReservada;
 	private static final String JSON_URL_ESPECIES = "http://localhost:8080/frigorifico/rest/especies";
 	private static final String JSON_URL_PROCEDENCIAS = "http://localhost:8080/frigorifico/rest/procedencias";
 	private static final String JSON_URL_SIGUIENTE_NUMERO_TROPA  = "http://localhost:8080/frigorifico/rest/siguiente_tropa/";
 	private static final String JSON_URL_GUARDAR_TROPA  = "http://localhost:8080/frigorifico/rest/nueva_tropa_en_palco";
 
-	private final ExecutorService executorService = Executors.newCachedThreadPool();
+	private ExecutorService executorService = Executors.newCachedThreadPool();
 	private TropaBean tropaBean = new TropaBean();
 	
 	final ToggleGroup cabeza = new ToggleGroup();
@@ -77,6 +78,7 @@ public class PalcoController {
     @FXML
     private void initialize() {
     	
+    	
     	//Cargo Combos
     	cargarComboEspecie();
     	cargarComboProcedencia();
@@ -87,9 +89,10 @@ public class PalcoController {
     	rbAlMedio.setToggleGroup(cabeza);
     	
     	//Cargando numero de tropa
-    	//numeroTropa.setText(siguienteNumeroTropa);
+    	calcularNumeroTropa();
     	
-       
+    	executorService.shutdown();
+    	
     	
          
     }
@@ -151,6 +154,7 @@ public class PalcoController {
 	 */
 	private static String readUrl(String urlString) throws Exception {
 		BufferedReader reader = null;
+		System.out.println("url " + urlString);
 		try {
 			URL url = new URL(urlString);
 			reader = new BufferedReader(new InputStreamReader(url.openStream()));
@@ -160,6 +164,7 @@ public class PalcoController {
 			while ((read = reader.read(chars)) != -1)
 				buffer.append(chars, 0, read);
 
+			System.out.println("Estoy en el readUrl devolviendo " + buffer.toString());
 			return buffer.toString();
 		} finally {
 			if (reader != null)
@@ -253,15 +258,24 @@ public class PalcoController {
 	private Task<TropaReservada> fetchNumeroTropa = new Task<TropaReservada>() {
 		@Override
 		protected TropaReservada call() throws Exception {
+			System.out.println("Entre al task cuando cambio procedenciaaaaaaa");
 			TropaReservada tropaReservada = null;
+			while(procedencia.getValue() == null ){
+				//TODO: SOlucionar esta mierda del while... sincronizar los hilos
+			}
+			System.out.println("Procedencia combo boxxxxxx" + procedencia.getValue());
 			int idProcedencia = procedencia.getValue().getIdProcedencia();
+			System.out.println("Parametro al readUrl: " + JSON_URL_SIGUIENTE_NUMERO_TROPA + idProcedencia);
+			System.out.println("Entrando en el Task fetchNumeroTropa");
 			try {
 				Gson gson = new Gson();
-				tropaReservada = gson.fromJson(readUrl(JSON_URL_SIGUIENTE_NUMERO_TROPA + idProcedencia), new TypeToken<TropaReservada>() {
-				}.getType());
+				tropaReservada = gson.fromJson(readUrl(JSON_URL_SIGUIENTE_NUMERO_TROPA + idProcedencia), 
+														new TypeToken<TropaReservada>() {
+														}.getType());
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
+			System.out.println("Tropa reservada de Taskkkkkk" + tropaReservada);
 			return tropaReservada;
 		}
 	};
@@ -341,32 +355,33 @@ public class PalcoController {
     
     @FXML
     private void calcularNumeroTropa(){
+    	System.out.println("Cambie procedencia!!!!");
     	executorService.submit(fetchNumeroTropa);
-    	fetchList.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
+    	System.out.println("Pase el submit!!!!");
+    	fetchNumeroTropa.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
 			@Override
 			public void handle(WorkerStateEvent t) {
-				especieList = FXCollections.observableArrayList(fetchList.getValue());
-				System.out.println(especieList);
-				
-				especie.setItems(especieList);
-				System.out.println("Tamaño comboooooo" + especieList.size());
-		    	for (EspecieBean e: especieList){
-		    		System.out.println("Cargando comboooo" + e.getDescripcion());
-		    		if(e.getDescripcion().equalsIgnoreCase("Porcinos")){
-		    			especie.setValue(e);
-		    			return;
-		    		}
-		    	} 
-				
+		    	System.out.println("Cambie procedencia de nuevo!!!!");
+				tropaReservada = fetchNumeroTropa.getValue();
+				System.out.println(tropaReservada);
+				System.out.println(tropaReservada.getUltimaTropa());
+				numeroTropa.setText(new Integer(tropaReservada.obtenerSiguienteNroDeTropa()).toString());
 			}
 		});
-
-    	
-    	
-    	
     	
     }
     
+    @FXML
+    private void cambiaComboProcedencia(){
+    	System.out.println("Entre a cambiaComboProcedenciaaaa");
+    	if (executorService == null || executorService.isShutdown()){
+    		System.out.println("Entre al iffffff del executorService");
+    		executorService = Executors.newSingleThreadExecutor();
+    	}
+    	calcularNumeroTropa();
+    	executorService.shutdown();    	
+    	
+    }
 
 	
 }
