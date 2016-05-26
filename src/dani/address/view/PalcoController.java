@@ -27,6 +27,7 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleGroup;
+import javafx.scene.layout.AnchorPane;
 import tropa.TropaReservada;
 import javafx.scene.control.Alert.AlertType;
 
@@ -47,6 +48,12 @@ public class PalcoController {
     @FXML
     private TextField numeroTropa;
     
+    @FXML
+    private AnchorPane primerPanel;
+    
+    @FXML
+    private AnchorPane segundoPanel;
+    
     // Reference to the main application.
     private AplicacionPrincipalPalco aplicacionPrincipalPalco;
     
@@ -59,6 +66,7 @@ public class PalcoController {
 	private static final String JSON_URL_GUARDAR_TROPA  = "http://localhost:8080/frigorifico/rest/nueva_tropa_en_palco";
 
 	private ExecutorService executorService = Executors.newCachedThreadPool();
+	
 	private TropaBean tropaBean = new TropaBean();
 	
 	final ToggleGroup cabeza = new ToggleGroup();
@@ -78,6 +86,7 @@ public class PalcoController {
     @FXML
     private void initialize() {
     	
+    	segundoPanel.setDisable(true);
     	
     	//Cargo Combos
     	cargarComboEspecie();
@@ -90,11 +99,6 @@ public class PalcoController {
     	
     	//Cargando numero de tropa
     	calcularNumeroTropa();
-    	
-    	executorService.shutdown();
-    	
-    	
-         
     }
 
     /**
@@ -142,6 +146,10 @@ public class PalcoController {
 
         	alert.showAndWait();
         }
+        
+        //System.out.println("Id primer Panelllllllll" + primerPanel.getId());
+        primerPanel.setDisable(true);
+        segundoPanel.setDisable(false);
     }
     
    
@@ -279,6 +287,8 @@ public class PalcoController {
 			return tropaReservada;
 		}
 	};
+	
+	
     /**
 	 * Task to fetch details from JSONURL
 	 * 
@@ -373,6 +383,46 @@ public class PalcoController {
     
     @FXML
     private void cambiaComboProcedencia(){
+    	 Task<TropaReservada> fetchNumeroTropaNuevo = new Task<TropaReservada>() {
+    		@Override
+    		protected TropaReservada call() throws Exception {
+    			System.out.println("++++++++Entre al task cuando cambio procedenciaaaaaaa");
+    			TropaReservada tropaReservada = null;
+    			while(procedencia.getValue() == null ){
+    				//TODO: SOlucionar esta mierda del while... sincronizar los hilos
+    			}
+    			System.out.println("+++++++Procedencia combo boxxxxxx" + procedencia.getValue());
+    			int idProcedencia = procedencia.getValue().getIdProcedencia();
+    			System.out.println("++++++++Parametro al readUrl: " + JSON_URL_SIGUIENTE_NUMERO_TROPA + idProcedencia);
+    			System.out.println("+++++++++Entrando en el Task fetchNumeroTropa");
+    			try {
+    				Gson gson = new Gson();
+    				tropaReservada = gson.fromJson(readUrl(JSON_URL_SIGUIENTE_NUMERO_TROPA + idProcedencia), 
+    														new TypeToken<TropaReservada>() {
+    														}.getType());
+    			} catch (Exception e) {
+    				e.printStackTrace();
+    			}
+    			System.out.println("+++++++++++Tropa reservada de Taskkkkkk" + tropaReservada);
+    			return tropaReservada;
+    		}
+    	};
+    	
+    	ExecutorService executorServiceNuevo = Executors.newCachedThreadPool();
+    	executorServiceNuevo.submit(fetchNumeroTropaNuevo);
+    	System.out.println("+++++++++++++Pase el submit!!!!");
+    	fetchNumeroTropaNuevo.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
+			@Override
+			public void handle(WorkerStateEvent t) {
+		    	System.out.println("++++++++++++Cambie procedencia de nuevo!!!!");
+				tropaReservada = fetchNumeroTropaNuevo.getValue();
+				System.out.println(tropaReservada);
+				System.out.println(tropaReservada.getUltimaTropa());
+				numeroTropa.setText(new Integer(tropaReservada.obtenerSiguienteNroDeTropa()).toString());
+			}
+		});
+    	
+    	/*
     	System.out.println("Entre a cambiaComboProcedenciaaaa");
     	if (executorService == null || executorService.isShutdown()){
     		System.out.println("Entre al iffffff del executorService");
@@ -380,6 +430,7 @@ public class PalcoController {
     	}
     	calcularNumeroTropa();
     	executorService.shutdown();    	
+    	*/
     	
     }
 
