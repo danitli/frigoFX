@@ -15,21 +15,26 @@ import com.google.gson.Gson;
 import dani.address.AplicacionPrincipalPalco;
 import bean.especie.EspecieBean;
 import bean.procedencia.ProcedenciaBean;
+import bean.tropa.AnimalBean;
 import bean.tropa.TropaBean;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.concurrent.WorkerStateEvent;
+import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextField;
+import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.Pane;
 import tropa.TropaReservada;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.Button;
 
 public class PalcoController {
 	
@@ -49,10 +54,30 @@ public class PalcoController {
     private TextField numeroTropa;
     
     @FXML
+    private TextField numeroGarron;
+    
+    @FXML
+    private TextField pesoAnimal;
+        
+    @FXML
     private AnchorPane primerPanel;
     
     @FXML
     private AnchorPane segundoPanel;
+    
+    
+    @FXML
+    private Pane tercerPanel;
+    
+    @FXML
+    private ToggleButton caponButton;
+    
+    @FXML
+    private ToggleButton chanchaButton;
+    
+    @FXML
+    private ToggleButton chanchoButton;
+    
     
     // Reference to the main application.
     private AplicacionPrincipalPalco aplicacionPrincipalPalco;
@@ -64,13 +89,17 @@ public class PalcoController {
 	private static final String JSON_URL_PROCEDENCIAS = "http://localhost:8080/frigorifico/rest/procedencias";
 	private static final String JSON_URL_SIGUIENTE_NUMERO_TROPA  = "http://localhost:8080/frigorifico/rest/siguiente_tropa/";
 	private static final String JSON_URL_GUARDAR_TROPA  = "http://localhost:8080/frigorifico/rest/nueva_tropa_en_palco";
+	private static final String JSON_URL_GUARDAR_ANIMAL  = "http://localhost:8080/frigorifico/rest/agregar_animal_a_tropa";
+	private static final String JSON_URL_OBTENER_GARRON  = "http://localhost:8080/frigorifico/rest/obtener_siguiente_garron";
 
 	private ExecutorService executorService = Executors.newCachedThreadPool();
 	
 	private TropaBean tropaBean = new TropaBean();
+	private AnimalBean animalBeanAGuardar = new AnimalBean();
+	
 	
 	final ToggleGroup cabeza = new ToggleGroup();
-	
+	final ToggleGroup categoriaButtons = new ToggleGroup();
 	
 	/**
      * The constructor.
@@ -86,7 +115,8 @@ public class PalcoController {
     @FXML
     private void initialize() {
     	
-    	segundoPanel.setDisable(true);
+    	//segundoPanel.setDisable(true);
+    	tercerPanel.setDisable(true);
     	
     	//Cargo Combos
     	cargarComboEspecie();
@@ -99,6 +129,11 @@ public class PalcoController {
     	
     	//Cargando numero de tropa
     	calcularNumeroTropa();
+    	
+    	//inicio categoriaButtoms
+    	caponButton.setToggleGroup(categoriaButtons);
+    	chanchaButton.setToggleGroup(categoriaButtons);
+    	chanchoButton.setToggleGroup(categoriaButtons);
     }
 
     /**
@@ -150,6 +185,19 @@ public class PalcoController {
         //System.out.println("Id primer Panelllllllll" + primerPanel.getId());
         primerPanel.setDisable(true);
         segundoPanel.setDisable(false);
+        
+        executorService.submit(obtenerSiguienteGarron);
+        obtenerSiguienteGarron.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
+        	AnimalBean animalBean = new AnimalBean();
+			@Override
+			public void handle(WorkerStateEvent t) {
+		    	System.out.println("Cambie procedencia de nuevo!!!!");
+				animalBean = obtenerSiguienteGarron.getValue();
+				System.out.println(animalBean);
+				System.out.println(animalBean.getGarron());
+				numeroGarron.setText(new Integer(animalBean.getGarron()).toString());
+			}
+		});
     }
     
    
@@ -181,7 +229,7 @@ public class PalcoController {
 	}
 	
 	// HTTP POST request
-		private String writeUrl(String url) throws Exception {
+		private String writeUrl(String url, Object data) throws Exception {
 
 			URL obj = new URL(url);
 			HttpURLConnection con = (HttpURLConnection) obj.openConnection();
@@ -197,7 +245,7 @@ public class PalcoController {
 			con.setDoOutput(true);			
 			DataOutputStream wr = new DataOutputStream(con.getOutputStream());
 			//wr.writeBytes(urlParameters);
-			wr.writeChars(tropaBean.toString());
+			wr.writeChars(data.toString());
 			wr.flush();
 			wr.close();
 
@@ -297,18 +345,48 @@ public class PalcoController {
 	private Task<TropaBean> guardarTropaBean = new Task<TropaBean>() {
 		@Override
 		protected TropaBean call() throws Exception {
-			
+			TropaBean tropaBeanResultado= new TropaBean();
 			try {
 				Gson gson = new Gson();
-				tropaBean = gson.fromJson(writeUrl(JSON_URL_GUARDAR_TROPA), new TypeToken<TropaBean>() {
+				tropaBeanResultado = gson.fromJson(writeUrl(JSON_URL_GUARDAR_TROPA, tropaBean), new TypeToken<TropaBean>() {
 				}.getType());
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-			return tropaBean;
+			return tropaBeanResultado;
+		}
+	};
+	
+	private Task<AnimalBean> guardarAnimalBean = new Task<AnimalBean>() {
+		@Override
+		protected AnimalBean call() throws Exception {
+			AnimalBean animalBeanResultado= new AnimalBean();
+			try {
+				Gson gson = new Gson();
+				animalBeanResultado = gson.fromJson(writeUrl(JSON_URL_GUARDAR_ANIMAL, animalBeanAGuardar), 
+						new TypeToken<AnimalBean>() {
+				}.getType());
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			return animalBeanResultado;
 		}
 	};
     
+	private Task<AnimalBean> obtenerSiguienteGarron = new Task<AnimalBean>() {
+		@Override
+		protected AnimalBean call() throws Exception {
+			AnimalBean animalBean = new AnimalBean();
+			try {
+				Gson gson = new Gson();
+				animalBean = gson.fromJson(readUrl(JSON_URL_OBTENER_GARRON), new TypeToken<AnimalBean>() {
+				}.getType());
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			return animalBean;
+		}
+	};
 	
 	
     @FXML
@@ -433,6 +511,54 @@ public class PalcoController {
     	*/
     	
     }
+    
+    @FXML
+    private void guardarCategoria(ActionEvent event){
+    	if (event.getSource() instanceof ToggleButton) { //should always be true in your example
+    		ToggleButton clickedBtn = (ToggleButton) event.getTarget(); // that's the button that was clicked
+    	    System.out.println(clickedBtn.getText()); // prints the id of the button
+    	    clickedBtn.setSelected(true);
+    	   
+    	}
+    }
 
-	
+    @FXML
+    private void imprimirEtiqueta(){
+    	int idCategoria = 1;
+    	if(caponButton.isPressed()){
+    		idCategoria = 1;
+    	}
+    	if(chanchaButton.isPressed()){
+    		idCategoria = 2;
+    	}
+    	if(chanchoButton.isPressed()){
+    		idCategoria = 4;
+    	}
+    	
+    	Double peso = Double.parseDouble(pesoAnimal.getText());
+    	boolean cabezaAnimalEntera = ((RadioButton)cabeza.getSelectedToggle()).getText().equalsIgnoreCase("Entera");
+    	int garron = Integer.parseInt(numeroGarron.getText());
+    	int idTropa = Integer.parseInt(numeroTropa.getText());
+    	
+    	animalBeanAGuardar.setCabezaFaenadaEntera(cabezaAnimalEntera);
+    	animalBeanAGuardar.setGarron(garron);
+    	animalBeanAGuardar.setIdCategoria(idCategoria);
+    	animalBeanAGuardar.setPeso(peso);
+    	animalBeanAGuardar.setIdTropa(idTropa);
+    	
+    	executorService.submit(guardarAnimalBean);
+    	guardarAnimalBean.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
+    		@Override
+    		public void handle(WorkerStateEvent t) {
+    			animalBeanAGuardar = guardarAnimalBean.getValue();
+    			System.out.println(animalBeanAGuardar);
+    		}
+    	});
+    	
+    	segundoPanel.setDisable(true);
+    	tercerPanel.setDisable(false);
+    	
+
+    }
+    
 }
