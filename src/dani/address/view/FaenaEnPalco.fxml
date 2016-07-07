@@ -34,7 +34,8 @@
                         </ComboBox>
                         
                         <ComboBox fx:id="procedencia" layoutX="10.0" layoutY="103.0" onAction="#cambiaComboProcedencia" prefWidth="150.0" promptText="Seleccione Procedencia..." AnchorPane.leftAnchor="10.0">
-                        </ComboBox>      
+                        </ComboBox>
+                        <Button layoutX="51.0" layoutY="215.0" mnemonicParsing="false" text="Button" />      
                                           
                      </children>
                   </AnchorPane>
@@ -46,12 +47,12 @@
                         <Label layoutX="30.0" layoutY="102.0" text="Cabeza" />
                         <Label layoutX="23.0" layoutY="166.0" text="Nro. Garrón" />
                         <Label layoutX="29.0" layoutY="212.0" text="Peso" />
-                        <RadioButton fx:id="rbEntera" layoutX="47.0" layoutY="132.0" mnemonicParsing="false" text="Entera" />
+                        <RadioButton fx:id="rbEntera" layoutX="47.0" layoutY="132.0" mnemonicParsing="false" selected="true" text="Entera" />
                         <RadioButton fx:id="rbAlMedio" layoutX="141.0" layoutY="132.0" mnemonicParsing="false" text="Al medio" />
                         <TextField fx:id="numeroGarron" layoutX="106.0" layoutY="158.0" prefHeight="3.0" prefWidth="206.0" promptText="nro_garron_automatico" />
                         <TextField fx:id="pesoAnimal" layoutX="75.0" layoutY="208.0" promptText="se carga a mano" />
                         <Button fx:id="imprimirEtiqueta" layoutX="242.0" layoutY="251.0" mnemonicParsing="false" onAction="#imprimirEtiqueta" text="Imprimir Etiqueta" />
-                        <ToggleButton fx:id="caponButton" layoutX="30.0" layoutY="51.0" mnemonicParsing="false" onAction="#guardarCategoria" text="Capon" />
+                        <ToggleButton fx:id="caponButton" layoutX="30.0" layoutY="51.0" mnemonicParsing="false" onAction="#guardarCategoria" selected="true" text="Capon" />
                         <ToggleButton fx:id="chanchaButton" layoutX="102.0" layoutY="51.0" mnemonicParsing="false" onAction="#guardarCategoria" text="Chancha" />
                         <ToggleButton fx:id="chanchoButton" layoutX="179.0" layoutY="51.0" mnemonicParsing="false" onAction="#guardarCategoria" text="Chancho" />
                      </children>

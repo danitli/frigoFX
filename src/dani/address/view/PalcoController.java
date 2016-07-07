@@ -17,8 +17,11 @@ import bean.especie.EspecieBean;
 import bean.procedencia.ProcedenciaBean;
 import bean.tropa.AnimalBean;
 import bean.tropa.TropaBean;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.concurrent.Service;
 import javafx.concurrent.Task;
 import javafx.concurrent.WorkerStateEvent;
 import javafx.event.ActionEvent;
@@ -115,7 +118,7 @@ public class PalcoController {
     @FXML
     private void initialize() {
     	
-    	//segundoPanel.setDisable(true);
+    	segundoPanel.setDisable(true);
     	tercerPanel.setDisable(true);
     	
     	//Cargo Combos
@@ -388,7 +391,35 @@ public class PalcoController {
 		}
 	};
 	
+	//AGREGO A PARTIR DE ACA PARA PROBAR LO DE SERVICE
 	
+	public static class FirstLineService extends Service<String> {
+        private StringProperty url = new SimpleStringProperty(this, "http://docs.oracle.com/javafx/2/threads/jfxpub-threads.htm");
+        public final void setUrl(String value) { url.set(value); }
+        public final String getUrl() { return url.get(); }
+        public final StringProperty urlProperty() { return url; }
+
+        protected Task createTask() {
+            final String _url = getUrl();
+            return new Task<String>() {
+                protected String call() throws Exception {
+                    URL u = new URL(_url);
+                    BufferedReader in = new BufferedReader(
+                            new InputStreamReader(u.openStream()));
+                    String result = in.readLine();
+                    in.close();
+                    return result;
+                }
+            };
+        }
+    }
+    
+	// HASTA ACA
+	
+	@FXML
+	private void pobandoService(){
+		executorService.submit(fetchList);
+	}	
     @FXML
     private void cargarComboEspecie(){
     	executorService.submit(fetchList);
@@ -555,8 +586,29 @@ public class PalcoController {
     		}
     	});
     	
-    	segundoPanel.setDisable(true);
-    	tercerPanel.setDisable(false);
+    	//TODO: falta el procedimiento de imprimir etiqueta en si. (el pelpa en el bicho tomuer) 
+    	
+    	
+    	/*segundoPanel.setDisable(true);
+    	tercerPanel.setDisable(false);*/
+    	
+    	
+    	
+    	executorService.submit(obtenerSiguienteGarron);
+        obtenerSiguienteGarron.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
+        	AnimalBean animalBean = new AnimalBean();
+			@Override
+			public void handle(WorkerStateEvent t) {
+		    	System.out.println("Cambie procedencia de nuevo!!!!");
+				animalBean = obtenerSiguienteGarron.getValue();
+				System.out.println(animalBean);
+				System.out.println(animalBean.getGarron());
+				numeroGarron.setText(new Integer(animalBean.getGarron()).toString());
+			}
+		});
+    	
+    	   	 
+    	pesoAnimal.setText("");
     	
 
     }
