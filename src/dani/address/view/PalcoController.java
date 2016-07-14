@@ -185,7 +185,7 @@ public class PalcoController {
 		primerPanel.setDisable(true);
 		segundoPanel.setDisable(false);
 
-		siguienteGarron(numeroGarron, executorService);
+		siguienteGarron(numeroGarron);
 
 		System.out.println("Se terino de ejecutar el servicio????::: " + executorService.isTerminated());
 	}
@@ -506,7 +506,20 @@ public class PalcoController {
 		animalBeanAGuardar.setIdCategoria(idCategoria);
 		animalBeanAGuardar.setPeso(peso);
 		animalBeanAGuardar.setIdTropa(idTropa);
-		guardarAnimal(animalBeanAGuardar, executorService);
+		guardarAnimal(animalBeanAGuardar);
+//		executorService.shutdown();
+//		while(!executorService.isTerminated()){
+//			try {
+//				executorService.awaitTermination(10, TimeUnit.SECONDS);
+//				System.out.println("termine de esperar");
+//			} catch (InterruptedException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			} // wait for 10s in this case
+//		}
+//		
+//		System.out.println("antes de setear el peso en vacio");
+		pesoAnimal.setText("");
 
 		// TODO: falta el procedimiento de imprimir etiqueta en si. (el pelpa en
 		// el bicho tomuer)
@@ -514,14 +527,12 @@ public class PalcoController {
 		/*
 		 * segundoPanel.setDisable(true); tercerPanel.setDisable(false);
 		 */
-
-		siguienteGarron(numeroGarron, executorService);
+		System.out.println("por buscar el siguiente garron deberia aprecer despues de esperar");
 		
-
-		pesoAnimal.setText("");
+		siguienteGarron(numeroGarron);
 	}
 
-	private void siguienteGarron(TextField numeroGarron, ExecutorService executorService) {
+	private void siguienteGarron(TextField numeroGarron) {
 
 		final ObtenerSiguienteGarronService obtenerSiguienteGarronService = new ObtenerSiguienteGarronService();
 		obtenerSiguienteGarronService.setExecutor(executorService);
@@ -541,7 +552,7 @@ public class PalcoController {
 		obtenerSiguienteGarronService.start();
 	}
 
-	public void guardarAnimal(AnimalBean animalBeanAGuardar, ExecutorService executorService) {
+	public void guardarAnimal(AnimalBean animalBeanAGuardar) {
 		final GuardarAnimalService guardarAnimalService = new GuardarAnimalService();
 		guardarAnimalService.setAnimalBeanAGuardar(animalBeanAGuardar);
 		guardarAnimalService.setExecutor(executorService);
@@ -555,8 +566,15 @@ public class PalcoController {
 				System.out.println("Invocando al handle del guardarAnimalService on suucceeded method: " + animalBeanGuardado);
 			}
 		});
-
 		guardarAnimalService.start();
+		try {
+			System.out.println("esperando 10 segundos");
+			Thread.sleep(10000);
+			System.out.println("TERMINE DE ESPERAR");
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	public static class ObtenerSiguienteGarronService extends Service<AnimalBean> {
