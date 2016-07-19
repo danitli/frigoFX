@@ -181,6 +181,12 @@ public class PalcoController {
 			}
 		});
 		
+		obtenerSiguienteNroTropaService.setExecutor(executorService);
+		guardarTropaService.setExecutor(executorService);
+		obtenerSiguienteGarronService.setExecutor(executorService);
+		guardarAnimalService.setExecutor(executorService);
+		
+		
 	}
 
 	/**
@@ -301,7 +307,6 @@ public class PalcoController {
 		});
 	}
 
-
 	private void cargarComboProcedencia() {
 		executorService.submit(fetchListProcedencias);
 		fetchListProcedencias.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
@@ -341,8 +346,8 @@ public class PalcoController {
         }
 	}
 	
-	
 	private void guardarTropa(TropaBean tropaBeanAGuardar){
+		
 		guardarTropaService.setTropaBean(tropaBeanAGuardar);
 		if (guardarTropaService.getState() == State.READY) {
 			guardarTropaService.start();
@@ -352,7 +357,6 @@ public class PalcoController {
         		guardarTropaService.restart();
         	}
         }
-		
 	}
 
 	private void siguienteGarron(TextField numeroGarron) {
