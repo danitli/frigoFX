@@ -129,8 +129,6 @@ public class PalcoController {
 		rbEntera.setSelected(true);
 		rbAlMedio.setToggleGroup(cabeza);
 
-		// Cargando numero de tropa
-		handleCalcularNumeroTropa();
 
 		// inicio categoriaButtoms
 		caponButton.setToggleGroup(categoriaButtons);
@@ -194,58 +192,11 @@ public class PalcoController {
 		this.aplicacionPrincipalPalco = aplicacionPrincipalPalco;
 	}
 
-
-	
-
 	@FXML
 	private void handleCambiaComboProcedencia() {
-		Task<TropaReservada> fetchNumeroTropaNuevo = new Task<TropaReservada>() {
-			@Override
-			protected TropaReservada call() throws Exception {
-				System.out.println("++++++++Entre al task cuando cambio procedenciaaaaaaa");
-				TropaReservada tropaReservada = null;
-				while (procedencia.getValue() == null) {
-					// TODO: SOlucionar esta mierda del while... sincronizar los
-					// hilos
-				}
-				System.out.println("+++++++Procedencia combo boxxxxxx" + procedencia.getValue());
-				int idProcedencia = procedencia.getValue().getIdProcedencia();
-				System.out.println("++++++++Parametro al readUrl: " + JSON_URL_SIGUIENTE_NUMERO_TROPA + idProcedencia);
-				System.out.println("+++++++++Entrando en el Task fetchNumeroTropa");
-				try {
-					Gson gson = new Gson();
-					tropaReservada = gson.fromJson(readUrl(JSON_URL_SIGUIENTE_NUMERO_TROPA + idProcedencia),
-							new TypeToken<TropaReservada>() {
-					}.getType());
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-				System.out.println("+++++++++++Tropa reservada de Taskkkkkk" + tropaReservada);
-				return tropaReservada;
-			}
-		};
-
-		ExecutorService executorServiceNuevo = Executors.newCachedThreadPool();
-		executorServiceNuevo.submit(fetchNumeroTropaNuevo);
-		System.out.println("+++++++++++++Pase el submit!!!!");
-		fetchNumeroTropaNuevo.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
-			@Override
-			public void handle(WorkerStateEvent t) {
-				System.out.println("++++++++++++Cambie procedencia de nuevo!!!!");
-				tropaReservada = fetchNumeroTropaNuevo.getValue();
-				System.out.println(tropaReservada);
-				System.out.println(tropaReservada.getUltimaTropa());
-				numeroTropa.setText(new Integer(tropaReservada.obtenerSiguienteNroDeTropa()).toString());
-			}
-		});
-	}
-	
-	@FXML
-	private void handleCalcularNumeroTropa() {
-		System.out.println("handle calcular numero de tropa");
 		calcularSiguienteNroTropa();
 	}
-
+	
 	@FXML
 	private void handleInicializarFaena() {
 		EspecieBean selectedEspecieBean = (EspecieBean) especie.getSelectionModel().getSelectedItem();
@@ -373,7 +324,7 @@ public class PalcoController {
 						return;
 					}
 				}
-
+				calcularSiguienteNroTropa();
 			}
 		});
 	}
