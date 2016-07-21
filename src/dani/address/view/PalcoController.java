@@ -5,6 +5,9 @@ import java.io.DataOutputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.text.FieldPosition;
+import java.text.NumberFormat;
+import java.text.ParsePosition;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -17,6 +20,8 @@ import bean.procedencia.ProcedenciaBean;
 import bean.tropa.AnimalBean;
 import bean.tropa.TropaBean;
 import dani.address.AplicacionPrincipalPalco;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Service;
@@ -31,10 +36,12 @@ import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextField;
+import javafx.scene.control.TextFormatter;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
+import javafx.util.converter.NumberStringConverter;
 import tropa.TropaReservada;
 
 public class PalcoController {
@@ -116,7 +123,19 @@ public class PalcoController {
 	 */
 	@FXML
 	private void initialize() {
-
+		
+		pesoAnimal.textProperty().addListener(new ChangeListener<String>() {
+	        @Override
+	        public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+	            if (!newValue.matches("[0-9]+(,?[0-9]{0,2})?")) {
+	                pesoAnimal.setText(newValue.replaceAll("[^\\([0-9]+(,?[0-9]{0,2})?]", ""));
+	            }
+	            
+//	            if (!newValue.matches("\\d*")) {
+//	                pesoAnimal.setText(newValue.replaceAll("[^\\d]", ""));
+//	            }
+	        }
+	    });
 		segundoPanel.setDisable(true);
 		tercerPanel.setDisable(true);
 
@@ -246,6 +265,7 @@ public class PalcoController {
 
 	@FXML
 	private void handleImprimirEtiqueta() {
+		
 		int idCategoria = 1;
 		if (caponButton.isPressed()) {
 			idCategoria = 1;
@@ -256,20 +276,35 @@ public class PalcoController {
 		if (chanchoButton.isPressed()) {
 			idCategoria = 4;
 		}
+		
+		System.out.println("El peso del animal esssssss " + pesoAnimal.getText());
+		
+		if(!pesoAnimal.getText().isEmpty()){
+			Double peso = Double.parseDouble(pesoAnimal.getText());
+			boolean cabezaAnimalEntera = ((RadioButton) cabeza.getSelectedToggle()).getText().equalsIgnoreCase("Entera");
+			int garron = Integer.parseInt(numeroGarron.getText());
+			int idTropa = Integer.parseInt(numeroTropa.getText());
+			
+			AnimalBean animalBeanAGuardar = new AnimalBean();
+			animalBeanAGuardar.setCabezaFaenadaEntera(cabezaAnimalEntera);
+			animalBeanAGuardar.setGarron(garron);
+			animalBeanAGuardar.setIdCategoria(idCategoria);
+			animalBeanAGuardar.setPeso(peso);
+			animalBeanAGuardar.setIdTropa(idTropa);
+			guardarAnimal(animalBeanAGuardar);
+			pesoAnimal.setText("");
+		}
+		
+		else {
+			// Nothing selected.
+			Alert alert = new Alert(AlertType.ERROR);
+			alert.setTitle("Mensaje de Error");
+			alert.setHeaderText("No ingreso peso");
+			alert.setContentText("Por favor ingrese el peso");
 
-		Double peso = Double.parseDouble(pesoAnimal.getText());
-		boolean cabezaAnimalEntera = ((RadioButton) cabeza.getSelectedToggle()).getText().equalsIgnoreCase("Entera");
-		int garron = Integer.parseInt(numeroGarron.getText());
-		int idTropa = Integer.parseInt(numeroTropa.getText());
+			alert.showAndWait();
+		}
 
-		AnimalBean animalBeanAGuardar = new AnimalBean();
-		animalBeanAGuardar.setCabezaFaenadaEntera(cabezaAnimalEntera);
-		animalBeanAGuardar.setGarron(garron);
-		animalBeanAGuardar.setIdCategoria(idCategoria);
-		animalBeanAGuardar.setPeso(peso);
-		animalBeanAGuardar.setIdTropa(idTropa);
-		guardarAnimal(animalBeanAGuardar);
-		pesoAnimal.setText("");
 
 		// TODO: falta el procedimiento de imprimir etiqueta en si. (el pelpa en
 		// el bicho tomuer)
