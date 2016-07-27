@@ -11,6 +11,9 @@ import java.text.ParsePosition;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.regex.Pattern;
+
+import org.hibernate.secure.spi.PermissibleAction;
 
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
@@ -20,6 +23,7 @@ import bean.procedencia.ProcedenciaBean;
 import bean.tropa.AnimalBean;
 import bean.tropa.TropaBean;
 import dani.address.AplicacionPrincipalPalco;
+import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
@@ -99,7 +103,7 @@ public class PalcoController {
 	private static final String JSON_URL_OBTENER_GARRON = "http://localhost:8080/frigorifico/rest/obtener_siguiente_garron";
 
 	private ExecutorService executorService = Executors.newCachedThreadPool();
-	
+
 	private ObtenerSiguienteNroTropaService obtenerSiguienteNroTropaService = new ObtenerSiguienteNroTropaService();
 	private GuardarTropaService guardarTropaService = new GuardarTropaService();
 	private ObtenerSiguienteGarronService obtenerSiguienteGarronService = new ObtenerSiguienteGarronService();
@@ -123,19 +127,22 @@ public class PalcoController {
 	 */
 	@FXML
 	private void initialize() {
-		
+
 		pesoAnimal.textProperty().addListener(new ChangeListener<String>() {
-	        @Override
-	        public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
-	            if (!newValue.matches("[0-9]+(,?[0-9]{0,2})?")) {
-	                pesoAnimal.setText(newValue.replaceAll("[^\\([0-9]+(,?[0-9]{0,2})?]", ""));
-	            }
-	            
-//	            if (!newValue.matches("\\d*")) {
-//	                pesoAnimal.setText(newValue.replaceAll("[^\\d]", ""));
-//	            }
-	        }
-	    });
+			@Override
+			public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+				Pattern patron = Pattern.compile("\\b[0-9]+(?:\\.{0,1}[0-9]{0,2})?");
+				if (!newValue.matches(patron.pattern())) {
+					Platform.runLater(() -> {
+						pesoAnimal.clear();
+					});
+				}
+
+				// if (!newValue.matches("\\d*")) {
+				// pesoAnimal.setText(newValue.replaceAll("[^\\d]", ""));
+				// }
+			}
+		});
 		segundoPanel.setDisable(true);
 		tercerPanel.setDisable(true);
 
@@ -148,33 +155,33 @@ public class PalcoController {
 		rbEntera.setSelected(true);
 		rbAlMedio.setToggleGroup(cabeza);
 
-
 		// inicio categoriaButtoms
 		caponButton.setToggleGroup(categoriaButtons);
 		chanchaButton.setToggleGroup(categoriaButtons);
 		chanchoButton.setToggleGroup(categoriaButtons);
-		
+
 		obtenerSiguienteNroTropaService.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
 			@Override
 			public void handle(WorkerStateEvent t) {
 				System.out.println("Cambie procedencia de nuevo!!!!");
 				tropaReservada = obtenerSiguienteNroTropaService.getValue();
-				System.out.println( "Tropa reservada en el handle del calcularNumeroTropa" + tropaReservada);
+				System.out.println("Tropa reservada en el handle del calcularNumeroTropa" + tropaReservada);
 				System.out.println(tropaReservada.getUltimaTropa());
 				numeroTropa.setText(new Integer(tropaReservada.obtenerSiguienteNroDeTropa()).toString());
 			}
 		});
-		
+
 		guardarTropaService.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
 			TropaBean tropaBeanGuardada = new TropaBean();
-			
+
 			@Override
 			public void handle(WorkerStateEvent t) {
 				tropaBeanGuardada = guardarTropaService.getValue();
-				System.out.println("Impresion de tropaBean en el handle guardar tropa en el setOnSucceeded: " + tropaBeanGuardada);
+				System.out.println(
+						"Impresion de tropaBean en el handle guardar tropa en el setOnSucceeded: " + tropaBeanGuardada);
 			}
 		});
-		
+
 		obtenerSiguienteGarronService.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
 			AnimalBean animalBean = new AnimalBean();
 
@@ -187,25 +194,25 @@ public class PalcoController {
 				numeroGarron.setText(new Integer(animalBean.getGarron()).toString());
 			}
 		});
-		
+
 		guardarAnimalService.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
 			AnimalBean animalBeanGuardado = new AnimalBean();
-			
+
 			@Override
 			public void handle(WorkerStateEvent t) {
 				animalBeanGuardado = guardarAnimalService.getValue();
-				System.out.println("Invocando al handle del guardarAnimalService on succeeded method: " + animalBeanGuardado);
+				System.out.println(
+						"Invocando al handle del guardarAnimalService on succeeded method: " + animalBeanGuardado);
 				System.out.println("el estado del servicio, que poronga es: " + guardarAnimalService.getState());
 				siguienteGarron(numeroGarron);
 			}
 		});
-		
+
 		obtenerSiguienteNroTropaService.setExecutor(executorService);
 		guardarTropaService.setExecutor(executorService);
 		obtenerSiguienteGarronService.setExecutor(executorService);
 		guardarAnimalService.setExecutor(executorService);
-		
-		
+
 	}
 
 	/**
@@ -221,7 +228,7 @@ public class PalcoController {
 	private void handleCambiaComboProcedencia() {
 		calcularSiguienteNroTropa();
 	}
-	
+
 	@FXML
 	private void handleInicializarFaena() {
 		EspecieBean selectedEspecieBean = (EspecieBean) especie.getSelectionModel().getSelectedItem();
@@ -253,19 +260,19 @@ public class PalcoController {
 		siguienteGarron(numeroGarron);
 		System.out.println("Se terino de ejecutar el servicio????::: " + executorService.isTerminated());
 	}
-	
+
 	@FXML
 	private void handleGuardarCategoria(ActionEvent event) {
-		if (event.getSource() instanceof ToggleButton) { 
+		if (event.getSource() instanceof ToggleButton) {
 			ToggleButton clickedBtn = (ToggleButton) event.getTarget();
-			System.out.println(clickedBtn.getText()); 
+			System.out.println(clickedBtn.getText());
 			clickedBtn.setSelected(true);
 		}
 	}
 
 	@FXML
 	private void handleImprimirEtiqueta() {
-		
+
 		int idCategoria = 1;
 		if (caponButton.isPressed()) {
 			idCategoria = 1;
@@ -276,15 +283,16 @@ public class PalcoController {
 		if (chanchoButton.isPressed()) {
 			idCategoria = 4;
 		}
-		
+
 		System.out.println("El peso del animal esssssss " + pesoAnimal.getText());
-		
-		if(!pesoAnimal.getText().isEmpty()){
+
+		if (!pesoAnimal.getText().isEmpty()) {
 			Double peso = Double.parseDouble(pesoAnimal.getText());
-			boolean cabezaAnimalEntera = ((RadioButton) cabeza.getSelectedToggle()).getText().equalsIgnoreCase("Entera");
+			boolean cabezaAnimalEntera = ((RadioButton) cabeza.getSelectedToggle()).getText()
+					.equalsIgnoreCase("Entera");
 			int garron = Integer.parseInt(numeroGarron.getText());
 			int idTropa = Integer.parseInt(numeroTropa.getText());
-			
+
 			AnimalBean animalBeanAGuardar = new AnimalBean();
 			animalBeanAGuardar.setCabezaFaenadaEntera(cabezaAnimalEntera);
 			animalBeanAGuardar.setGarron(garron);
@@ -294,7 +302,7 @@ public class PalcoController {
 			guardarAnimal(animalBeanAGuardar);
 			pesoAnimal.setText("");
 		}
-		
+
 		else {
 			// Nothing selected.
 			Alert alert = new Alert(AlertType.ERROR);
@@ -305,22 +313,20 @@ public class PalcoController {
 			alert.showAndWait();
 		}
 
-
 		// TODO: falta el procedimiento de imprimir etiqueta en si. (el pelpa en
 		// el bicho tomuer)
 
 		/*
 		 * segundoPanel.setDisable(true); tercerPanel.setDisable(false);
 		 */
-		
+
 		System.out.println("por buscar el siguiente garron deberia aprecer despues de esperar");
 	}
-	
-	
-	//******************
-	//METODOS PRIVADOS QUE INVOCAN SERVICIOS O TASK 
-	//******************
-	
+
+	// ******************
+	// METODOS PRIVADOS QUE INVOCAN SERVICIOS O TASK
+	// ******************
+
 	private void cargarComboEspecie() {
 		executorService.submit(fetchListEspecies);
 		fetchListEspecies.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
@@ -368,41 +374,41 @@ public class PalcoController {
 			}
 		});
 	}
-	
-	
-	private void calcularSiguienteNroTropa(){
+
+	private void calcularSiguienteNroTropa() {
 		obtenerSiguienteNroTropaService.setProcedenciaBean(procedencia);
-		if (obtenerSiguienteNroTropaService.getState() == State.READY){
+		if (obtenerSiguienteNroTropaService.getState() == State.READY) {
 			obtenerSiguienteNroTropaService.start();
-		}else {
-			if(obtenerSiguienteNroTropaService.getState() == State.SUCCEEDED){
+		} else {
+			if (obtenerSiguienteNroTropaService.getState() == State.SUCCEEDED) {
 				obtenerSiguienteNroTropaService.restart();
 			}
-        }
+		}
 	}
-	
-	private void guardarTropa(TropaBean tropaBeanAGuardar){
-		
+
+	private void guardarTropa(TropaBean tropaBeanAGuardar) {
+
 		guardarTropaService.setTropaBean(tropaBeanAGuardar);
 		if (guardarTropaService.getState() == State.READY) {
 			guardarTropaService.start();
-			
-        } else {
-        	if (guardarTropaService.getState() == State.SUCCEEDED){
-        		guardarTropaService.restart();
-        	}
-        }
+
+		} else {
+			if (guardarTropaService.getState() == State.SUCCEEDED) {
+				guardarTropaService.restart();
+			}
+		}
 	}
 
 	private void siguienteGarron(TextField numeroGarron) {
-		if (obtenerSiguienteGarronService.getState() == State.READY){
+		if (obtenerSiguienteGarronService.getState() == State.READY) {
 			obtenerSiguienteGarronService.start();
-		}else {
-			if(obtenerSiguienteGarronService.getState() == State.SUCCEEDED){
-				System.out.println("Entre al if del succeeded de obtener siguiente garron: " + obtenerSiguienteGarronService.getState());
+		} else {
+			if (obtenerSiguienteGarronService.getState() == State.SUCCEEDED) {
+				System.out.println("Entre al if del succeeded de obtener siguiente garron: "
+						+ obtenerSiguienteGarronService.getState());
 				obtenerSiguienteGarronService.restart();
 			}
-        }
+		}
 	}
 
 	public void guardarAnimal(AnimalBean animalBeanAGuardar) {
@@ -411,20 +417,18 @@ public class PalcoController {
 			System.out.println("antes del estado start: " + guardarAnimalService.getState());
 			guardarAnimalService.start();
 			System.out.println("despues del estado start: " + guardarAnimalService.getState());
-			
-        } else {
-        	if (guardarAnimalService.getState() == State.SUCCEEDED){
-        		System.out.println("Entre al if del succeeded de guardar animal: " + guardarAnimalService.getState());
-        		guardarAnimalService.restart();
-        	}
-        }
+
+		} else {
+			if (guardarAnimalService.getState() == State.SUCCEEDED) {
+				System.out.println("Entre al if del succeeded de guardar animal: " + guardarAnimalService.getState());
+				guardarAnimalService.restart();
+			}
+		}
 	}
-	
-	
-	
-	//********************
-	//******TASKS*****
-	//********************
+
+	// ********************
+	// ******TASKS*****
+	// ********************
 	/**
 	 * Task to fetch details from JSONURL
 	 * 
@@ -460,26 +464,27 @@ public class PalcoController {
 		}
 	};
 
-	
-	//********************
-	//******SERVICIOS*****
-	//********************
-	
-	public static class ObtenerSiguienteNroTropaService extends Service<TropaReservada>{
-		private ComboBox<ProcedenciaBean> procedenciaBean= null;
+	// ********************
+	// ******SERVICIOS*****
+	// ********************
+
+	public static class ObtenerSiguienteNroTropaService extends Service<TropaReservada> {
+		private ComboBox<ProcedenciaBean> procedenciaBean = null;
+
 		public ComboBox<ProcedenciaBean> getProcedenciaBean() {
 			return procedenciaBean;
 		}
+
 		public void setProcedenciaBean(ComboBox<ProcedenciaBean> procedenciaBean) {
 			this.procedenciaBean = procedenciaBean;
 		}
 
 		protected Task<TropaReservada> createTask() {
-			return new Task<TropaReservada>(){
+			return new Task<TropaReservada>() {
 				protected TropaReservada call() throws Exception {
 					System.out.println("Entre al task cuando cambio procedenciaaaaaaa");
 					TropaReservada tropaReservada = null;
-					
+
 					System.out.println("Procedencia combo boxxxxxx" + procedenciaBean.getValue());
 					int idProcedencia = procedenciaBean.getValue().getIdProcedencia();
 					System.out.println("Parametro al readUrl: " + JSON_URL_SIGUIENTE_NUMERO_TROPA + idProcedencia);
@@ -498,19 +503,20 @@ public class PalcoController {
 			};
 		}
 	}
-	
-		
-	public static class GuardarTropaService extends Service<TropaBean>{
+
+	public static class GuardarTropaService extends Service<TropaBean> {
 		protected TropaBean tropaBean = null;
+
 		public TropaBean getTropaBean() {
 			return tropaBean;
 		}
+
 		public void setTropaBean(TropaBean tropaBean) {
 			this.tropaBean = tropaBean;
 		}
 
 		protected Task<TropaBean> createTask() {
-			return new Task<TropaBean>(){
+			return new Task<TropaBean>() {
 				protected TropaBean call() throws Exception {
 					TropaBean tropaBeanResultado = new TropaBean();
 					try {
@@ -528,7 +534,7 @@ public class PalcoController {
 	}
 
 	public static class ObtenerSiguienteGarronService extends Service<AnimalBean> {
-		
+
 		protected Task<AnimalBean> createTask() {
 			return new Task<AnimalBean>() {
 				protected AnimalBean call() throws Exception {
@@ -551,9 +557,11 @@ public class PalcoController {
 	public static class GuardarAnimalService extends Service<AnimalBean> {
 
 		protected AnimalBean animalBeanAGuardar = null;
+
 		public AnimalBean getAnimalBeanAGuardar() {
 			return this.animalBeanAGuardar;
 		}
+
 		public void setAnimalBeanAGuardar(AnimalBean animalBean) {
 			this.animalBeanAGuardar = animalBean;
 		}
@@ -577,11 +585,10 @@ public class PalcoController {
 			};
 		}
 	}
-	
-	
-	//*********************
+
+	// *********************
 	// GET Y POST, read y write url
-	//*********************	
+	// *********************
 	/**
 	 * Read the URL and return the json data
 	 * 
