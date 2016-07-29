@@ -8,6 +8,8 @@ import java.net.URL;
 import java.text.FieldPosition;
 import java.text.NumberFormat;
 import java.text.ParsePosition;
+import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -17,12 +19,14 @@ import org.hibernate.secure.spi.PermissibleAction;
 
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import bean.especie.EspecieBean;
 import bean.procedencia.ProcedenciaBean;
 import bean.tropa.AnimalBean;
 import bean.tropa.TropaBean;
 import dani.address.AplicacionPrincipalPalco;
+import ejecutoras.faena.Etiqueta;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -109,7 +113,7 @@ public class PalcoController {
 	private ObtenerSiguienteGarronService obtenerSiguienteGarronService = new ObtenerSiguienteGarronService();
 	private GuardarAnimalService guardarAnimalService = new GuardarAnimalService();
 
-	private TropaBean tropaBean = new TropaBean();
+	private TropaBean tropaBeanPalcoController = new TropaBean();
 
 	final ToggleGroup cabeza = new ToggleGroup();
 	final ToggleGroup categoriaButtons = new ToggleGroup();
@@ -131,7 +135,7 @@ public class PalcoController {
 		pesoAnimal.textProperty().addListener(new ChangeListener<String>() {
 			@Override
 			public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
-				Pattern patron = Pattern.compile("\\b[0-9]+(?:\\.{0,1}[0-9]{0,2})?");
+				Pattern patron = Pattern.compile("\\b[0-9]+(?:\\,{0,1}[0-9]{0,2})?");
 				if (!newValue.matches(patron.pattern())) {
 					Platform.runLater(() -> {
 						pesoAnimal.clear();
@@ -235,16 +239,21 @@ public class PalcoController {
 		ProcedenciaBean selectedProcedenciaBean = (ProcedenciaBean) procedencia.getSelectionModel().getSelectedItem();
 
 		if ((selectedEspecieBean != null) && (selectedProcedenciaBean != null)) {
-			tropaBean.setEspecieId(selectedEspecieBean.getIdEspecie());
-			tropaBean.setProcendeciaId(selectedProcedenciaBean.getIdProcedencia());
-			tropaBean.setAnimalesRecibidos(140);
-			tropaBean.setEstablecimientoId(1);
+			tropaBeanPalcoController.setEspecieId(selectedEspecieBean.getIdEspecie());
+			tropaBeanPalcoController.setProcendeciaId(selectedProcedenciaBean.getIdProcedencia());
+			
+			//TODO esto es chamuyo ARREGLAR!!!!
+			tropaBeanPalcoController.setAnimalesRecibidos(140);
+			tropaBeanPalcoController.setEstablecimientoId(1);
+			
 			System.out.println("especie id: " + selectedEspecieBean.getIdEspecie());
 			System.out.println("procedencia id: " + selectedProcedenciaBean.getIdProcedencia());
 			System.out.println(procedencia.getSelectionModel().getSelectedItem());
+			System.out.println("La tropa bean como json: " + tropaBeanPalcoController.toString() );
 
-			guardarTropa(tropaBean);
-
+			//Guardar tropa te devuelve la tropa guardada con la fecha faena y el id tropa
+			tropaBeanPalcoController = guardarTropa(tropaBeanPalcoController);
+			
 		} else {
 			// Nothing selected.
 			Alert alert = new Alert(AlertType.ERROR);
@@ -257,6 +266,7 @@ public class PalcoController {
 
 		primerPanel.setDisable(true);
 		segundoPanel.setDisable(false);
+		tercerPanel.setDisable(false);
 		siguienteGarron(numeroGarron);
 		System.out.println("Se terino de ejecutar el servicio????::: " + executorService.isTerminated());
 	}
@@ -287,20 +297,24 @@ public class PalcoController {
 		System.out.println("El peso del animal esssssss " + pesoAnimal.getText());
 
 		if (!pesoAnimal.getText().isEmpty()) {
-			Double peso = Double.parseDouble(pesoAnimal.getText());
+			Double peso = Double.parseDouble(pesoAnimal.getText().replace(",", "."));
 			boolean cabezaAnimalEntera = ((RadioButton) cabeza.getSelectedToggle()).getText()
 					.equalsIgnoreCase("Entera");
 			int garron = Integer.parseInt(numeroGarron.getText());
-			int idTropa = Integer.parseInt(numeroTropa.getText());
+			
 
 			AnimalBean animalBeanAGuardar = new AnimalBean();
 			animalBeanAGuardar.setCabezaFaenadaEntera(cabezaAnimalEntera);
 			animalBeanAGuardar.setGarron(garron);
 			animalBeanAGuardar.setIdCategoria(idCategoria);
 			animalBeanAGuardar.setPeso(peso);
-			animalBeanAGuardar.setIdTropa(idTropa);
+			animalBeanAGuardar.setIdTropa(tropaBeanPalcoController.getIdTropa());
 			guardarAnimal(animalBeanAGuardar);
 			pesoAnimal.setText("");
+			
+			Etiqueta etiqueta = new Etiqueta();
+			System.out.println("Imprimiendo tropaBeanPalcoController " + tropaBeanPalcoController);
+			etiqueta.imprimirEtiquetas(tropaBeanPalcoController, animalBeanAGuardar);
 		}
 
 		else {
@@ -386,7 +400,7 @@ public class PalcoController {
 		}
 	}
 
-	private void guardarTropa(TropaBean tropaBeanAGuardar) {
+	private TropaBean guardarTropa(TropaBean tropaBeanAGuardar) {
 
 		guardarTropaService.setTropaBean(tropaBeanAGuardar);
 		if (guardarTropaService.getState() == State.READY) {
@@ -397,6 +411,7 @@ public class PalcoController {
 				guardarTropaService.restart();
 			}
 		}
+		return guardarTropaService.getTropaBean();
 	}
 
 	private void siguienteGarron(TextField numeroGarron) {
@@ -520,13 +535,16 @@ public class PalcoController {
 				protected TropaBean call() throws Exception {
 					TropaBean tropaBeanResultado = new TropaBean();
 					try {
-						Gson gson = new Gson();
+						GsonBuilder gsonBuilder = new GsonBuilder();
+						gsonBuilder.setDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+						Gson gson = gsonBuilder.create();
 						tropaBeanResultado = gson.fromJson(writeUrl(JSON_URL_GUARDAR_TROPA, tropaBean),
 								new TypeToken<TropaBean>() {
 						}.getType());
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
+					GuardarTropaService.this.setTropaBean(tropaBeanResultado);
 					return tropaBeanResultado;
 				}
 			};
@@ -645,6 +663,7 @@ public class PalcoController {
 
 		BufferedReader reader = null;
 		try {
+			System.out.println();
 			reader = new BufferedReader(new InputStreamReader(con.getInputStream()));
 			StringBuffer buffer = new StringBuffer();
 			int read;
