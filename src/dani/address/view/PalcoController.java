@@ -176,13 +176,12 @@ public class PalcoController {
 		});
 
 		guardarTropaService.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
-			TropaBean tropaBeanGuardada = new TropaBean();
 
 			@Override
 			public void handle(WorkerStateEvent t) {
-				tropaBeanGuardada = guardarTropaService.getValue();
+				tropaBeanPalcoController =  guardarTropaService.getValue();
 				System.out.println(
-						"Impresion de tropaBean en el handle guardar tropa en el setOnSucceeded: " + tropaBeanGuardada);
+						"Impresion de tropaBean en el handle guardar tropa en el setOnSucceeded: " + tropaBeanPalcoController);
 			}
 		});
 
@@ -252,7 +251,7 @@ public class PalcoController {
 			System.out.println("La tropa bean como json: " + tropaBeanPalcoController.toString() );
 
 			//Guardar tropa te devuelve la tropa guardada con la fecha faena y el id tropa
-			tropaBeanPalcoController = guardarTropa(tropaBeanPalcoController);
+			guardarTropa(tropaBeanPalcoController);
 			
 		} else {
 			// Nothing selected.
@@ -336,6 +335,22 @@ public class PalcoController {
 
 		System.out.println("por buscar el siguiente garron deberia aprecer despues de esperar");
 	}
+	
+	@FXML
+	private void handleFinalizarFaena(){
+		System.out.println("Estoy ejecutando el handle finalizar faena");
+		tropaBeanPalcoController = new TropaBean();
+		numeroGarron.setText("");
+		
+		segundoPanel.setDisable(true);
+		primerPanel.setDisable(false);
+		
+		calcularSiguienteNroTropa();
+		tercerPanel.setDisable(true);
+		
+	}
+	
+	
 
 	// ******************
 	// METODOS PRIVADOS QUE INVOCAN SERVICIOS O TASK
@@ -350,7 +365,7 @@ public class PalcoController {
 				System.out.println(especieList);
 
 				especie.setItems(especieList);
-				System.out.println("Tamaño comboooooo" + especieList.size());
+				System.out.println("Tamaï¿½o comboooooo" + especieList.size());
 				for (EspecieBean e : especieList) {
 					System.out.println("Cargando comboooo" + e.getDescripcion());
 					if (e.getDescripcion().equalsIgnoreCase("Porcinos")) {
@@ -376,7 +391,7 @@ public class PalcoController {
 							+ procedenciaBean.getDescripcion());
 				}
 				procedencia.setItems(procedenciaList);
-				System.out.println("Tamaño comboooooo" + procedenciaList.size());
+				System.out.println("Tamaï¿½o comboooooo" + procedenciaList.size());
 				for (ProcedenciaBean e : procedenciaList) {
 					System.out.println("Cargando comboooo" + e.getDescripcion());
 					if (e.getDescripcion().equalsIgnoreCase("Estancias")) {
@@ -400,7 +415,7 @@ public class PalcoController {
 		}
 	}
 
-	private TropaBean guardarTropa(TropaBean tropaBeanAGuardar) {
+	private void guardarTropa(TropaBean tropaBeanAGuardar) {
 
 		guardarTropaService.setTropaBean(tropaBeanAGuardar);
 		if (guardarTropaService.getState() == State.READY) {
@@ -411,7 +426,6 @@ public class PalcoController {
 				guardarTropaService.restart();
 			}
 		}
-		return guardarTropaService.getTropaBean();
 	}
 
 	private void siguienteGarron(TextField numeroGarron) {
@@ -544,6 +558,7 @@ public class PalcoController {
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
+					System.out.println("el resultado de guardar la tropa nueva: " + tropaBeanResultado);
 					GuardarTropaService.this.setTropaBean(tropaBeanResultado);
 					return tropaBeanResultado;
 				}

@@ -62,7 +62,7 @@
       </SplitPane>
       <Pane fx:id="tercerPanel" layoutX="600.0" prefHeight="300.0" prefWidth="150.0" styleClass="background" stylesheets="@DarkTheme.css">
          <children>
-            <Button layoutX="12.0" layoutY="252.0" mnemonicParsing="false" text="Finalizar Faena" />
+            <Button layoutX="12.0" layoutY="252.0" mnemonicParsing="false" onAction="#handleFinalizarFaena" text="Finalizar Faena" />
             <Separator layoutX="-4.0" orientation="VERTICAL" prefHeight="300.0" prefWidth="7.0" />
          </children>
       </Pane>

@@ -18,11 +18,11 @@ public class Etiqueta {
 		int peso1;
 		int peso2;
 		if (animalBean.isCabezaFaenadaEntera()) {
-			peso1 = (int) Math.round((animalBean.getPeso() / 2));
-			peso2 = peso1;
+			peso1 = (int) ((Math.round(animalBean.getPeso()) / 2) + PESO_CABEZA_ENTERA);
+			peso2 = (int) ((Math.round(animalBean.getPeso()) / 2) - PESO_CABEZA_ENTERA);
 		} else {
-			peso1 = (int) Math.round((animalBean.getPeso() / 2) + PESO_CABEZA_ENTERA);
-			peso2 = (int) Math.round((animalBean.getPeso() / 2) - PESO_CABEZA_ENTERA);
+			peso1 = (int) (Math.round(animalBean.getPeso())/2);
+			peso2 = peso1;
 		}
 
 		String datos = "Tropa: " + tropaBean.getNumeroTropa() + "\n Fecha Faena: " + tropaBean.getFechaFaena()
