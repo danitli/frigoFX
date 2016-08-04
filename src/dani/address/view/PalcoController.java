@@ -5,6 +5,7 @@ import java.io.DataOutputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -41,6 +42,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import tropa.TropaReservada;
 
@@ -77,21 +79,24 @@ public class PalcoController {
 	private Pane tercerPanel;
 
 	@FXML
-	private ToggleButton caponButton;
-
+	private HBox categoriaContainer;
+	
 	@FXML
-	private ToggleButton chanchaButton;
-
+	final ToggleGroup cabeza = new ToggleGroup();
+	
 	@FXML
-	private ToggleButton chanchoButton;
-
+	final ToggleGroup categoriaToggleGroup = new ToggleGroup();
+	
+	public List<ToggleButton> botonesCategoria = new ArrayList<ToggleButton>();
+	
 	// Reference to the main application.
 	private AplicacionPrincipalPalco aplicacionPrincipalPalco;
-
 	private ObservableList<EspecieBean> especieList;
 	private ObservableList<ProcedenciaBean> procedenciaList;
 	private TropaReservada tropaReservada;
 	private List<CategoriaBean> categoriasList; 
+	
+	
 	private static final String JSON_URL_ESPECIES = "http://localhost:8080/frigorifico/rest/especies";
 	private static final String JSON_URL_PROCEDENCIAS = "http://localhost:8080/frigorifico/rest/procedencias";
 	private static final String JSON_URL_CATEGORIAS = "http://localhost:8080/frigorifico/rest/categorias/";
@@ -110,8 +115,6 @@ public class PalcoController {
 
 	private TropaBean tropaBeanPalcoController = new TropaBean();
 
-	final ToggleGroup cabeza = new ToggleGroup();
-	final ToggleGroup categoriaButtons = new ToggleGroup();
 
 	/**
 	 * The constructor. The constructor is called before the initialize()
@@ -120,6 +123,7 @@ public class PalcoController {
 	public PalcoController() {
 	}
 
+	
 	/**
 	 * Initializes the controller class. This method is automatically called
 	 * after the fxml file has been loaded.
@@ -153,11 +157,6 @@ public class PalcoController {
 		rbEntera.setToggleGroup(cabeza);
 		rbEntera.setSelected(true);
 		rbAlMedio.setToggleGroup(cabeza);
-
-		// inicio categoriaButtoms
-		caponButton.setToggleGroup(categoriaButtons);
-		chanchaButton.setToggleGroup(categoriaButtons);
-		chanchoButton.setToggleGroup(categoriaButtons);
 
 		obtenerSiguienteNroTropaService.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
 			@Override
@@ -211,6 +210,20 @@ public class PalcoController {
 			public void handle(WorkerStateEvent t) {
 				categoriasList = cargarCategoriasSegunEspecieService.getValue();
 				System.out.println("la categoria de listas es: " + categoriasList);
+				categoriaContainer.getChildren().clear();
+				botonesCategoria.clear();
+				for (CategoriaBean categoriaBean : categoriasList) {
+					
+					ToggleButton boton = new ToggleButton();
+					boton.setToggleGroup(categoriaToggleGroup);
+					boton.setText(categoriaBean.getDescripcion());
+					boton.setId((new Integer(categoriaBean.getIdCategoria())).toString());
+					botonesCategoria.add(boton);
+					
+					categoriaContainer.getChildren().add(boton);
+					
+					
+				}
 			}
 		});
 
@@ -288,20 +301,14 @@ public class PalcoController {
 	private void handleImprimirEtiqueta() {
 
 		int idCategoria = 1;
-		if (caponButton.isSelected()) {
-			idCategoria = 1;
-		}
-		if (chanchaButton.isSelected()) {
-			idCategoria = 2;
-		}
-		if (chanchoButton.isSelected()) {
-			idCategoria = 3;
-		}
+		for (ToggleButton toggleButton : botonesCategoria) {
+			if (toggleButton.isSelected()) {
+				idCategoria = Integer.parseInt(toggleButton.getId());
+				break;
+			}
+		}		
 
 		System.out.println("El peso del animal esssssss " + pesoAnimal.getText());
-		System.out.println("Capon button presionado????? : " + caponButton.isSelected());
-		System.out.println("Chancha button presionado????? : " + chanchaButton.isSelected());
-		System.out.println("Chancho button presionado????? : " + chanchoButton.isSelected());
 
 		if (!pesoAnimal.getText().isEmpty()) {
 			Double peso = Double.parseDouble(pesoAnimal.getText().replace(",", "."));
