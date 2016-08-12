@@ -112,6 +112,7 @@ public class PalcoController {
 	private GuardarTropaService guardarTropaService = new GuardarTropaService();
 	private ObtenerSiguienteGarronService obtenerSiguienteGarronService = new ObtenerSiguienteGarronService();
 	private GuardarAnimalService guardarAnimalService = new GuardarAnimalService();
+	private VerificarNroTropaService verificarNroTropaService = new VerificarNroTropaService();
 
 	private TropaBean tropaBeanPalcoController = new TropaBean();
 
@@ -140,12 +141,23 @@ public class PalcoController {
 						pesoAnimal.clear();
 					});
 				}
-
-				// if (!newValue.matches("\\d*")) {
-				// pesoAnimal.setText(newValue.replaceAll("[^\\d]", ""));
-				// }
 			}
 		});
+		
+		numeroTropa.textProperty().addListener(new ChangeListener<String>() {
+			@Override
+			public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+				Pattern patron = Pattern.compile("\\b[0-9]+");
+				if (!newValue.matches(patron.pattern())) {
+					Platform.runLater(() -> {
+						numeroTropa.clear();
+					});
+				}
+			}
+		});
+		
+		
+		
 		segundoPanel.setDisable(true);
 		tercerPanel.setDisable(true);
 
@@ -232,7 +244,20 @@ public class PalcoController {
 		obtenerSiguienteGarronService.setExecutor(executorService);
 		guardarAnimalService.setExecutor(executorService);
 		cargarCategoriasSegunEspecieService.setExecutor(executorService);
-
+		
+		numeroTropa.focusedProperty().addListener(new ChangeListener<Boolean>()
+		{
+		    @Override
+		    public void changed(ObservableValue<? extends Boolean> arg0, Boolean oldPropertyValue, Boolean newPropertyValue)
+		    {
+		        if (newPropertyValue){
+		            System.out.println("Textfield on focus");
+		        }else{
+		            System.out.println("Textfield out focus");
+		            
+		        }
+		    }
+		});
 	}
 
 	/**
@@ -249,6 +274,7 @@ public class PalcoController {
 		calcularSiguienteNroTropa();
 	}
 
+	
 	@FXML
 	private void handleInicializarFaena() {
 		EspecieBean selectedEspecieBean = (EspecieBean) especie.getSelectionModel().getSelectedItem();
@@ -261,6 +287,7 @@ public class PalcoController {
 			// TODO esto es chamuyo ARREGLAR!!!!
 			tropaBeanPalcoController.setAnimalesRecibidos(140);
 			tropaBeanPalcoController.setEstablecimientoId(1);
+			tropaBeanPalcoController.setNumeroTropa(Integer.parseInt(numeroTropa.getText()));
 
 			System.out.println("especie id: " + selectedEspecieBean.getIdEspecie());
 			System.out.println("procedencia id: " + selectedProcedenciaBean.getIdProcedencia());
@@ -436,6 +463,17 @@ public class PalcoController {
 	}	
 
 	private void calcularSiguienteNroTropa() {
+		obtenerSiguienteNroTropaService.setProcedenciaBean(procedencia);
+		if (obtenerSiguienteNroTropaService.getState() == State.READY) {
+			obtenerSiguienteNroTropaService.start();
+		} else {
+			if (obtenerSiguienteNroTropaService.getState() == State.SUCCEEDED) {
+				obtenerSiguienteNroTropaService.restart();
+			}
+		}
+	}
+	
+	private void verificarNroTropa() {
 		obtenerSiguienteNroTropaService.setProcedenciaBean(procedencia);
 		if (obtenerSiguienteNroTropaService.getState() == State.READY) {
 			obtenerSiguienteNroTropaService.start();
@@ -650,6 +688,7 @@ public class PalcoController {
 		}
 	}
 
+	
 	public static class CargarCategoriasSegunEspecie extends Service<List<CategoriaBean>> {
 		protected int idEspecie;
 
@@ -679,6 +718,36 @@ public class PalcoController {
 			};
 		}
 	}
+	
+	public static class VerificarNroTropaService extends Service<TropaReservada> {
+		
+		
+		protected Task<TropaReservada> createTask() {
+			return new Task<TropaReservada>() {
+				protected TropaReservada call() throws Exception {
+					System.out.println("Entre al task cuando verifico numero tropa");
+					TropaReservada tropaReservada = null;
+
+					System.out.println("Procedencia combo boxxxxxx" + procedenciaBean.getValue());
+					int idProcedencia = procedenciaBean.getValue().getIdProcedencia();
+					System.out.println("Parametro al readUrl: " + JSON_URL_SIGUIENTE_NUMERO_TROPA + idProcedencia);
+					System.out.println("Entrando en el Task fetchNumeroTropa");
+					try {
+						Gson gson = new Gson();
+						tropaReservada = gson.fromJson(readUrl(JSON_URL_VERIFICAR_NUMERO_TROPA),
+								new TypeToken<TropaReservada>() {
+						}.getType());
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+					System.out.println("Tropa reservada de Taskkkkkk" + tropaReservada);
+					return tropaReservada;
+				}
+			};
+		}
+	}
+	
+	
 
 	// *********************
 	// GET Y POST, read y write url
@@ -757,4 +826,5 @@ public class PalcoController {
 		}
 
 	}
+
 }
