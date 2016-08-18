@@ -21,7 +21,7 @@
               <items>
                 <AnchorPane fx:id="primerPanel" minHeight="0.0" minWidth="0.0" prefHeight="298.0" prefWidth="215.0" stylesheets="@DarkTheme.css" SplitPane.resizableWithParent="false">
                      <children>
-                        <Button layoutX="21.0" layoutY="251.0" mnemonicParsing="false" onAction="#handleInicializarFaena" prefHeight="25.0" prefWidth="134.0" text="Inicializar Faena" />
+                        <Button fx:id="inicializarFaenaButton" layoutX="21.0" layoutY="251.0" mnemonicParsing="false" onAction="#handleInicializarFaena" prefHeight="25.0" prefWidth="134.0" text="Inicializar Faena" />
                         <Label layoutX="7.0" layoutY="141.0" text="Numero Tropa:" AnchorPane.leftAnchor="10.0" />
                         <Label layoutX="11.0" layoutY="82.0" text="Procedencia" AnchorPane.leftAnchor="10.0" />
                         <TextField fx:id="numeroTropa" layoutX="11.0" layoutY="165.0" prefHeight="25.0" prefWidth="86.0" promptText="nro_tropa_db" AnchorPane.leftAnchor="10.0">

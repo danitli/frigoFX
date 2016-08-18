@@ -14,6 +14,7 @@ import java.util.regex.Pattern;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
 
 import bean.categoria.CategoriaBean;
 import bean.especie.EspecieBean;
@@ -36,6 +37,7 @@ import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextField;
@@ -87,6 +89,9 @@ public class PalcoController {
 	@FXML
 	final ToggleGroup categoriaToggleGroup = new ToggleGroup();
 	
+	@FXML
+	final Button inicializarFaenaButton = new Button();
+	
 	public List<ToggleButton> botonesCategoria = new ArrayList<ToggleButton>();
 	
 	// Reference to the main application.
@@ -104,6 +109,7 @@ public class PalcoController {
 	private static final String JSON_URL_GUARDAR_TROPA = "http://localhost:8080/frigorifico/rest/nueva_tropa_en_palco";
 	private static final String JSON_URL_GUARDAR_ANIMAL = "http://localhost:8080/frigorifico/rest/agregar_animal_a_tropa";
 	private static final String JSON_URL_OBTENER_GARRON = "http://localhost:8080/frigorifico/rest/obtener_siguiente_garron";
+	private static final String JSON_URL_VERIFICAR_NUMERO_TROPA = "http://localhost:8080/frigorifico/rest/verificar_tropa_faenada/";
 
 	private ExecutorService executorService = Executors.newCachedThreadPool();
 
@@ -112,7 +118,7 @@ public class PalcoController {
 	private GuardarTropaService guardarTropaService = new GuardarTropaService();
 	private ObtenerSiguienteGarronService obtenerSiguienteGarronService = new ObtenerSiguienteGarronService();
 	private GuardarAnimalService guardarAnimalService = new GuardarAnimalService();
-	private VerificarNroTropaService verificarNroTropaService = new VerificarNroTropaService();
+	private VerificarTropaFaenadaService verificarTropaFaenadaService = new VerificarTropaFaenadaService();
 
 	private TropaBean tropaBeanPalcoController = new TropaBean();
 
@@ -238,12 +244,31 @@ public class PalcoController {
 				}
 			}
 		});
+		verificarTropaFaenadaService.setOnSucceeded(new EventHandler<WorkerStateEvent>() {			
+				@Override
+				public void handle(WorkerStateEvent t) {
+					if (verificarTropaFaenadaService.getValue()){
+						inicializarFaenaButton.setDisable(true);
+						
+						no se desabilita el boton
+						
+						Alert alert = new Alert(AlertType.ERROR);
+						alert.setTitle("Error Dialog");
+						alert.setHeaderText("Numero de tropa Incorrecto");
+						alert.setContentText("La tropa " + numeroTropa.getText() + " ya fue faenada");
+
+						alert.showAndWait();
+					}
+				}
+			}		
+		);
 
 		obtenerSiguienteNroTropaService.setExecutor(executorService);
 		guardarTropaService.setExecutor(executorService);
 		obtenerSiguienteGarronService.setExecutor(executorService);
 		guardarAnimalService.setExecutor(executorService);
 		cargarCategoriasSegunEspecieService.setExecutor(executorService);
+		verificarTropaFaenadaService.setExecutor(executorService);
 		
 		numeroTropa.focusedProperty().addListener(new ChangeListener<Boolean>()
 		{
@@ -253,7 +278,8 @@ public class PalcoController {
 		        if (newPropertyValue){
 		            System.out.println("Textfield on focus");
 		        }else{
-		            System.out.println("Textfield out focus");
+		        	inicializarFaenaButton.setDisable(false);
+		            verificarTropaFaenada();
 		            
 		        }
 		    }
@@ -523,6 +549,18 @@ public class PalcoController {
 			}
 		}
 	}
+	
+	public void verificarTropaFaenada(){
+		verificarTropaFaenadaService.setNroTropa(Integer.parseInt(numeroTropa.getText()));
+		if (verificarTropaFaenadaService.getState() == State.READY) {
+			verificarTropaFaenadaService.start();
+
+		} else {
+			if (verificarTropaFaenadaService.getState() == State.SUCCEEDED) {
+				verificarTropaFaenadaService.restart();
+			}
+		}
+	}
 
 	// ********************
 	// ******TASKS*****
@@ -719,29 +757,35 @@ public class PalcoController {
 		}
 	}
 	
-	public static class VerificarNroTropaService extends Service<TropaReservada> {
+	public static class VerificarTropaFaenadaService extends Service<Boolean> {
+		protected int nroTropa;
 		
-		
-		protected Task<TropaReservada> createTask() {
-			return new Task<TropaReservada>() {
-				protected TropaReservada call() throws Exception {
-					System.out.println("Entre al task cuando verifico numero tropa");
-					TropaReservada tropaReservada = null;
+		public int getNroTropa() {
+			return nroTropa;
+		}
+		public void setNroTropa(int nroTropa) {
+			this.nroTropa = nroTropa;
+		}
 
-					System.out.println("Procedencia combo boxxxxxx" + procedenciaBean.getValue());
-					int idProcedencia = procedenciaBean.getValue().getIdProcedencia();
-					System.out.println("Parametro al readUrl: " + JSON_URL_SIGUIENTE_NUMERO_TROPA + idProcedencia);
-					System.out.println("Entrando en el Task fetchNumeroTropa");
+		protected Task<Boolean> createTask() {
+			return new Task<Boolean>() {
+				protected Boolean call() throws Exception {
+					System.out.println("Entre al task cuando verifico numero tropa");
+									
 					try {
 						Gson gson = new Gson();
-						tropaReservada = gson.fromJson(readUrl(JSON_URL_VERIFICAR_NUMERO_TROPA),
-								new TypeToken<TropaReservada>() {
-						}.getType());
+						JsonObject gson1 = gson.fromJson(readUrl(JSON_URL_VERIFICAR_NUMERO_TROPA + getNroTropa()), JsonObject.class);
+						
+						System.out.println("======================");
+						System.out.println("viendo si devolvemos un booleano" + gson1.get("result").getAsBoolean());
+						System.out.println("======================");
+						return gson1.get("result").getAsBoolean();
+						
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
-					System.out.println("Tropa reservada de Taskkkkkk" + tropaReservada);
-					return tropaReservada;
+					
+					return false;
 				}
 			};
 		}
