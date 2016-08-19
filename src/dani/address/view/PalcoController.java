@@ -84,13 +84,13 @@ public class PalcoController {
 	private HBox categoriaContainer;
 	
 	@FXML
-	final ToggleGroup cabeza = new ToggleGroup();
+	private ToggleGroup cabeza = new ToggleGroup();
 	
 	@FXML
-	final ToggleGroup categoriaToggleGroup = new ToggleGroup();
+	private ToggleGroup categoriaToggleGroup = new ToggleGroup();
 	
 	@FXML
-	final Button inicializarFaenaButton = new Button();
+	private Button inicializarFaenaButton = new Button();
 	
 	public List<ToggleButton> botonesCategoria = new ArrayList<ToggleButton>();
 	
@@ -249,9 +249,7 @@ public class PalcoController {
 				public void handle(WorkerStateEvent t) {
 					if (verificarTropaFaenadaService.getValue()){
 						inicializarFaenaButton.setDisable(true);
-						
-						no se desabilita el boton
-						
+						System.out.println("supuestamente deshabilite el boton");
 						Alert alert = new Alert(AlertType.ERROR);
 						alert.setTitle("Error Dialog");
 						alert.setHeaderText("Numero de tropa Incorrecto");
@@ -277,8 +275,8 @@ public class PalcoController {
 		    {
 		        if (newPropertyValue){
 		            System.out.println("Textfield on focus");
+		            inicializarFaenaButton.setDisable(false);
 		        }else{
-		        	inicializarFaenaButton.setDisable(false);
 		            verificarTropaFaenada();
 		            
 		        }
@@ -311,7 +309,6 @@ public class PalcoController {
 			tropaBeanPalcoController.setProcendeciaId(selectedProcedenciaBean.getIdProcedencia());
 
 			// TODO esto es chamuyo ARREGLAR!!!!
-			tropaBeanPalcoController.setAnimalesRecibidos(140);
 			tropaBeanPalcoController.setEstablecimientoId(1);
 			tropaBeanPalcoController.setNumeroTropa(Integer.parseInt(numeroTropa.getText()));
 
@@ -437,7 +434,7 @@ public class PalcoController {
 				System.out.println(especieList);
 
 				especie.setItems(especieList);
-				System.out.println("Tamaï¿½o comboooooo" + especieList.size());
+				System.out.println("Tamaño comboooooo" + especieList.size());
 				for (EspecieBean e : especieList) {
 					System.out.println("Cargando comboooo" + e.getDescripcion());
 					if (e.getDescripcion().equalsIgnoreCase("Porcinos")) {
@@ -552,6 +549,7 @@ public class PalcoController {
 	
 	public void verificarTropaFaenada(){
 		verificarTropaFaenadaService.setNroTropa(Integer.parseInt(numeroTropa.getText()));
+		verificarTropaFaenadaService.setIdProcedencia(procedencia.getSelectionModel().getSelectedItem().getIdProcedencia());
 		if (verificarTropaFaenadaService.getState() == State.READY) {
 			verificarTropaFaenadaService.start();
 
@@ -759,6 +757,7 @@ public class PalcoController {
 	
 	public static class VerificarTropaFaenadaService extends Service<Boolean> {
 		protected int nroTropa;
+		protected int idProcedencia;
 		
 		public int getNroTropa() {
 			return nroTropa;
@@ -767,6 +766,13 @@ public class PalcoController {
 			this.nroTropa = nroTropa;
 		}
 
+		public int getIdProcedencia() {
+			return idProcedencia;
+		}
+		public void setIdProcedencia(int idProcedencia) {
+			this.idProcedencia = idProcedencia;
+		}
+		
 		protected Task<Boolean> createTask() {
 			return new Task<Boolean>() {
 				protected Boolean call() throws Exception {
@@ -774,7 +780,7 @@ public class PalcoController {
 									
 					try {
 						Gson gson = new Gson();
-						JsonObject gson1 = gson.fromJson(readUrl(JSON_URL_VERIFICAR_NUMERO_TROPA + getNroTropa()), JsonObject.class);
+						JsonObject gson1 = gson.fromJson(readUrl(JSON_URL_VERIFICAR_NUMERO_TROPA + getNroTropa() + "/" + getIdProcedencia()), JsonObject.class);
 						
 						System.out.println("======================");
 						System.out.println("viendo si devolvemos un booleano" + gson1.get("result").getAsBoolean());
