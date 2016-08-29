@@ -142,6 +142,7 @@ public class PalcoController {
 	@FXML
 	private void initialize() {
 
+		//FORMATO solo numeros del campo texto
 		pesoAnimal.textProperty().addListener(new ChangeListener<String>() {
 			@Override
 			public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
@@ -178,18 +179,7 @@ public class PalcoController {
 			}
 		});
 
-		segundoPanel.setDisable(true);
-		tercerPanel.setDisable(true);
-
-		// Cargo Combos
-		cargarComboEspecie();
-		cargarComboProcedencia();
-
-		// Inicio Radio buttoms
-		rbEntera.setToggleGroup(cabeza);
-		rbEntera.setSelected(true);
-		rbAlMedio.setToggleGroup(cabeza);
-
+		
 		obtenerSiguienteNroTropaService.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
 			@Override
 			public void handle(WorkerStateEvent t) {
@@ -244,15 +234,12 @@ public class PalcoController {
 				categoriaContainer.getChildren().clear();
 				botonesCategoria.clear();
 				for (CategoriaBean categoriaBean : categoriasList) {
-
 					ToggleButton boton = new ToggleButton();
 					boton.setToggleGroup(categoriaToggleGroup);
 					boton.setText(categoriaBean.getDescripcion());
 					boton.setId((new Integer(categoriaBean.getIdCategoria())).toString());
 					botonesCategoria.add(boton);
 					categoriaContainer.getChildren().add(boton);
-					
-
 				}
 				((ToggleButton)(categoriaContainer.getChildren().get(0))).setSelected(true);
 			}
@@ -268,7 +255,6 @@ public class PalcoController {
 					alert.setHeaderText("Numero de tropa Incorrecto");
 					alert.setContentText("La tropa " + numeroTropa.getText() + " ya fue faenada o esta "
 							+ "ingresando un numero de tropa fuera del rango de tropas reservadas para esa procedencia");
-
 					alert.showAndWait();
 				}
 			}
@@ -289,8 +275,6 @@ public class PalcoController {
 			}
 		});
 		
-		
-
 		obtenerSiguienteNroTropaService.setExecutor(executorService);
 		guardarTropaService.setExecutor(executorService);
 		obtenerSiguienteGarronService.setExecutor(executorService);
@@ -298,6 +282,18 @@ public class PalcoController {
 		cargarCategoriasSegunEspecieService.setExecutor(executorService);
 		verificarTropaFaenadaService.setExecutor(executorService);
 		verificarNumeroGarronModificadoService.setExecutor(executorService);
+		
+		segundoPanel.setDisable(true);
+		tercerPanel.setDisable(true);
+
+		// Cargo Combos
+		cargarComboEspecie();
+		cargarComboProcedencia();
+
+		// Inicio Radio buttoms
+		rbEntera.setToggleGroup(cabeza);
+		rbEntera.setSelected(true);
+		rbAlMedio.setToggleGroup(cabeza);
 
 		numeroTropa.focusedProperty().addListener(new ChangeListener<Boolean>() {
 			@Override
@@ -504,7 +500,7 @@ public class PalcoController {
 							+ procedenciaBean.getDescripcion());
 				}
 				procedencia.setItems(procedenciaList);
-				System.out.println("Tamaï¿½o comboooooo" + procedenciaList.size());
+				System.out.println("Tamaño comboooooo" + procedenciaList.size());
 				for (ProcedenciaBean e : procedenciaList) {
 					System.out.println("Cargando comboooo" + e.getDescripcion());
 					if (e.getDescripcion().equalsIgnoreCase("Estancias")) {
