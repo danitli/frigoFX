@@ -26,15 +26,28 @@ public class Etiqueta {
 		}
 
 		String datos = "Tropa: " + tropaBean.getNumeroTropa() + "\n Fecha Faena: " + tropaBean.getFechaFaena()
-				+ "\n Numero de Garron: " + animalBean.getGarron() + "\n Peso de una mitad: " + peso1 + 
-				"\n Peso de LA OTRA mitad: " + peso2 + "\n Categoria del animal: " + animalBean.getIdCategoria();
+				+ "\n Numero de Garron: " + animalBean.getGarron() + "\n Peso: " + peso1  + 
+				"\n Categoría: " + animalBean.getIdCategoria();
 		
 		System.out.println("Los datos a imprimir en la etiqueta son" + datos);
 
 		GeneradorCodigoQR generadorCodigoQR = new GeneradorCodigoQR();
 		File codigoQRGenerado = generadorCodigoQR.crearCodigoQrFile(datos);
 		MedioImpresionImpresoraComun miic = new MedioImpresionImpresoraComun(datos, codigoQRGenerado);
-		GeneradorEtiqueta ge = new GeneradorEtiqueta();
-		//ge.imprimir(datos, codigoQRGenerado, miic);
+		
+		GeneradorEtiqueta generadorEtiqueta = new GeneradorEtiqueta();
+		generadorEtiqueta.imprimir(datos, codigoQRGenerado, miic);
+		
+		datos = "Tropa: " + tropaBean.getNumeroTropa() + "\n Fecha Faena: " + tropaBean.getFechaFaena() +
+				"\n Numero de Garron: " + animalBean.getGarron() + "\n Peso: " + peso2  + 
+				"\n Categoría: " + animalBean.getIdCategoria();
+
+		System.out.println("Los datos a imprimir en la etiqueta son" + datos);
+		generadorCodigoQR = new GeneradorCodigoQR();
+		codigoQRGenerado = generadorCodigoQR.crearCodigoQrFile(datos);
+		miic = new MedioImpresionImpresoraComun(datos, codigoQRGenerado);
+		generadorEtiqueta = new GeneradorEtiqueta();
+		generadorEtiqueta.imprimir(datos, codigoQRGenerado, miic);
+		
 	}
 }

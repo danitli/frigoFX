@@ -7,10 +7,12 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.regex.Pattern;
 
+import com.google.common.base.Joiner;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -38,6 +40,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextField;
@@ -94,6 +97,9 @@ public class PalcoController {
 	
 	@FXML
 	private Button imprimirEtiqueta;
+	
+	@FXML 
+	private Button reservarGarronButton;
 
 	public List<ToggleButton> botonesCategoria = new ArrayList<ToggleButton>();
 
@@ -125,7 +131,8 @@ public class PalcoController {
 	private VerificarTropaFaenadaService verificarTropaFaenadaService = new VerificarTropaFaenadaService();
 	private VerificarNumeroGarronModificadoService verificarNumeroGarronModificadoService = new VerificarNumeroGarronModificadoService();
 	
-
+	private List<Integer> garronesReservados = new ArrayList<Integer>();
+	
 	private TropaBean tropaBeanPalcoController = new TropaBean();
 
 	/**
@@ -183,10 +190,7 @@ public class PalcoController {
 		obtenerSiguienteNroTropaService.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
 			@Override
 			public void handle(WorkerStateEvent t) {
-				System.out.println("Cambie procedencia de nuevo!!!!");
 				tropaReservada = obtenerSiguienteNroTropaService.getValue();
-				System.out.println("Tropa reservada en el handle del calcularNumeroTropa" + tropaReservada);
-				System.out.println(tropaReservada.getUltimaTropa());
 				numeroTropa.setText(new Integer(tropaReservada.obtenerSiguienteNroDeTropa()).toString());
 			}
 		});
@@ -196,8 +200,6 @@ public class PalcoController {
 			@Override
 			public void handle(WorkerStateEvent t) {
 				tropaBeanPalcoController = guardarTropaService.getValue();
-				System.out.println("Impresion de tropaBean en el handle guardar tropa en el setOnSucceeded: "
-						+ tropaBeanPalcoController);
 			}
 		});
 
@@ -206,10 +208,7 @@ public class PalcoController {
 
 			@Override
 			public void handle(WorkerStateEvent t) {
-				System.out.println("Obtener garron de nuevo!!!!");
 				animalBean = obtenerSiguienteGarronService.getValue();
-				System.out.println("Animal bean con el siguiente numero de garron: " + animalBean);
-				System.out.println(animalBean.getGarron());
 				numeroGarron.setText(new Integer(animalBean.getGarron()).toString());
 			}
 		});
@@ -220,9 +219,6 @@ public class PalcoController {
 			@Override
 			public void handle(WorkerStateEvent t) {
 				animalBeanGuardado = guardarAnimalService.getValue();
-				System.out.println(
-						"Invocando al handle del guardarAnimalService on succeeded method: " + animalBeanGuardado);
-				System.out.println("el estado del servicio, que poronga es: " + guardarAnimalService.getState());
 				siguienteGarron(numeroGarron);
 			}
 		});
@@ -249,7 +245,6 @@ public class PalcoController {
 			public void handle(WorkerStateEvent t) {
 				if (verificarTropaFaenadaService.getValue()) {
 					inicializarFaenaButton.setDisable(true);
-					System.out.println("supuestamente deshabilite el boton");
 					Alert alert = new Alert(AlertType.ERROR);
 					alert.setTitle("Error Dialog");
 					alert.setHeaderText("Numero de tropa Incorrecto");
@@ -264,7 +259,6 @@ public class PalcoController {
 			@Override
 			public void handle(WorkerStateEvent t) {
 				if (!verificarNumeroGarronModificadoService.getValue()) {
-					System.out.println("supuestamente deshabilite el boton");
 					imprimirEtiqueta.setDisable(true);
 					Alert alert = new Alert(AlertType.ERROR);
 					alert.setTitle("Error Dialog");
@@ -300,7 +294,6 @@ public class PalcoController {
 			public void changed(ObservableValue<? extends Boolean> arg0, Boolean oldPropertyValue,
 					Boolean newPropertyValue) {
 				if (newPropertyValue) {
-					System.out.println("Textfield on focus");
 					inicializarFaenaButton.setDisable(false);
 				} else {
 					verificarTropaFaenada();
@@ -314,7 +307,6 @@ public class PalcoController {
 			public void changed(ObservableValue<? extends Boolean> arg0, Boolean oldPropertyValue,
 					Boolean newPropertyValue) {
 				if (newPropertyValue) {
-					System.out.println("Textfield on focus");
 					 imprimirEtiqueta.setDisable(false);
 				} else {
 					verificarNumeroGarronModificado();
@@ -340,6 +332,8 @@ public class PalcoController {
 
 	@FXML
 	private void handleInicializarFaena() {
+		garronesReservados.clear();
+		
 		EspecieBean selectedEspecieBean = (EspecieBean) especie.getSelectionModel().getSelectedItem();
 		ProcedenciaBean selectedProcedenciaBean = (ProcedenciaBean) procedencia.getSelectionModel().getSelectedItem();
 
@@ -350,11 +344,6 @@ public class PalcoController {
 			// TODO esto es chamuyo ARREGLAR!!!!
 			tropaBeanPalcoController.setEstablecimientoId(1);
 			tropaBeanPalcoController.setNumeroTropa(Integer.parseInt(numeroTropa.getText()));
-
-			System.out.println("especie id: " + selectedEspecieBean.getIdEspecie());
-			System.out.println("procedencia id: " + selectedProcedenciaBean.getIdProcedencia());
-			System.out.println(procedencia.getSelectionModel().getSelectedItem());
-			System.out.println("La tropa bean como json: " + tropaBeanPalcoController.toString());
 
 			// Guardar tropa te devuelve la tropa guardada con la fecha faena y
 			// el id tropa
@@ -374,14 +363,12 @@ public class PalcoController {
 		segundoPanel.setDisable(false);
 		tercerPanel.setDisable(false);
 		siguienteGarron(numeroGarron);
-		System.out.println("Se terino de ejecutar el servicio????::: " + executorService.isTerminated());
 	}
 
 	@FXML
 	private void handleGuardarCategoria(ActionEvent event) {
 		if (event.getSource() instanceof ToggleButton) {
 			ToggleButton clickedBtn = (ToggleButton) event.getTarget();
-			System.out.println(clickedBtn.getText());
 			clickedBtn.setSelected(true);
 		}
 	}
@@ -396,8 +383,6 @@ public class PalcoController {
 				break;
 			}
 		}
-
-		System.out.println("El peso del animal esssssss " + pesoAnimal.getText());
 
 		if (!pesoAnimal.getText().isEmpty()) {
 			Double peso = Double.parseDouble(pesoAnimal.getText().replace(",", "."));
@@ -417,7 +402,6 @@ public class PalcoController {
 			pesoAnimal.setText("");
 
 			Etiqueta etiqueta = new Etiqueta();
-			System.out.println("Imprimiendo tropaBeanPalcoController " + tropaBeanPalcoController);
 			etiqueta.imprimirEtiquetas(tropaBeanPalcoController, animalBeanAGuardar);
 		}
 
@@ -430,34 +414,75 @@ public class PalcoController {
 
 			alert.showAndWait();
 		}
-
-		// TODO: falta el procedimiento de imprimir etiqueta en si. (el pelpa en
-		// el bicho tomuer)
-
-		/*
-		 * segundoPanel.setDisable(true); tercerPanel.setDisable(false);
-		 */
-
-		System.out.println("por buscar el siguiente garron deberia aprecer despues de esperar");
 	}
+	
+	@FXML
+	private void handleReservarGarron() {
+
+		int idCategoria = 1;
+		for (ToggleButton toggleButton : botonesCategoria) {
+			if (toggleButton.isSelected()) {
+				idCategoria = Integer.parseInt(toggleButton.getId());
+				break;
+			}
+		}
+
+		Double peso = 0.0;
+		if (!pesoAnimal.getText().isEmpty()) {
+			peso = Double.parseDouble(pesoAnimal.getText().replace(",", "."));
+		}
+		
+		boolean cabezaAnimalEntera = ((RadioButton) cabeza.getSelectedToggle()).getText()
+				.equalsIgnoreCase("Entera");
+		
+		int garron = Integer.parseInt(numeroGarron.getText());
+
+		AnimalBean animalBeanAGuardar = new AnimalBean();
+		animalBeanAGuardar.setCabezaFaenadaEntera(cabezaAnimalEntera);
+		animalBeanAGuardar.setGarron(garron);
+		animalBeanAGuardar.setIdCategoria(idCategoria);
+		animalBeanAGuardar.setPeso(peso);
+		animalBeanAGuardar.setIdTropa(tropaBeanPalcoController.getIdTropa());
+		guardarAnimal(animalBeanAGuardar);
+		pesoAnimal.setText("");
+
+		garronesReservados.add(garron);
+	}
+
 
 	@FXML
 	private void handleFinalizarFaena() {
-		System.out.println("Estoy ejecutando el handle finalizar faena");
-		tropaBeanPalcoController = new TropaBean();
-		numeroGarron.setText("");
-
+		
 		segundoPanel.setDisable(true);
-		primerPanel.setDisable(false);
 
-		calcularSiguienteNroTropa();
-		tercerPanel.setDisable(true);
+		if (!garronesReservados.isEmpty()){
+			Joiner joiner = Joiner.on(", ");
+			
+			Alert alert = new Alert(AlertType.CONFIRMATION);
+			alert.setTitle("Garrones Incompletos");
+			alert.setHeaderText("Los garrones: " + joiner.join(garronesReservados) + " han quedado sin faenar.");
+			
+			alert.setContentText("¿Desea faenarlos ahora?");
 
+			Optional<ButtonType> result = alert.showAndWait();
+			if (result.get() == ButtonType.OK){
+				segundoPanel.setDisable(false);
+				numeroGarron.setText(garronesReservados.remove(0).toString());
+			} else {
+				tropaBeanPalcoController = new TropaBean();
+				numeroGarron.setText("");
+
+				segundoPanel.setDisable(true);
+				primerPanel.setDisable(false);
+
+				calcularSiguienteNroTropa();
+				tercerPanel.setDisable(true);
+			}
+		}
 	}
 
 	@FXML
 	private void handleCargarCategoriasPorEspecie() {
-		System.out.println("FUNCIONA LA CARGADA de categorias segun especie");
 		cargarCategoriasPorEspecies();
 	}
 
@@ -471,12 +496,9 @@ public class PalcoController {
 			@Override
 			public void handle(WorkerStateEvent t) {
 				especieList = FXCollections.observableArrayList(fetchListEspecies.getValue());
-				System.out.println(especieList);
 
 				especie.setItems(especieList);
-				System.out.println("Tamaño comboooooo" + especieList.size());
 				for (EspecieBean e : especieList) {
-					System.out.println("Cargando comboooo" + e.getDescripcion());
 					if (e.getDescripcion().equalsIgnoreCase("Porcinos")) {
 						especie.setValue(e);
 						return;
@@ -492,17 +514,9 @@ public class PalcoController {
 			@Override
 			public void handle(WorkerStateEvent t) {
 				procedenciaList = FXCollections.observableArrayList(fetchListProcedencias.getValue());
-				System.out.println(procedenciaList);
-
-				System.out.println("Lista de procedencias =======");
-				for (ProcedenciaBean procedenciaBean : procedenciaList) {
-					System.out.println("Procedencia: " + procedenciaBean.getIdProcedencia() + " - "
-							+ procedenciaBean.getDescripcion());
-				}
+				
 				procedencia.setItems(procedenciaList);
-				System.out.println("Tamaño comboooooo" + procedenciaList.size());
 				for (ProcedenciaBean e : procedenciaList) {
-					System.out.println("Cargando comboooo" + e.getDescripcion());
 					if (e.getDescripcion().equalsIgnoreCase("Estancias")) {
 						procedencia.setValue(e);
 						return;
@@ -553,8 +567,6 @@ public class PalcoController {
 			obtenerSiguienteGarronService.start();
 		} else {
 			if (obtenerSiguienteGarronService.getState() == State.SUCCEEDED) {
-				System.out.println("Entre al if del succeeded de obtener siguiente garron: "
-						+ obtenerSiguienteGarronService.getState());
 				obtenerSiguienteGarronService.restart();
 			}
 		}
@@ -563,13 +575,10 @@ public class PalcoController {
 	public void guardarAnimal(AnimalBean animalBeanAGuardar) {
 		guardarAnimalService.setAnimalBeanAGuardar(animalBeanAGuardar);
 		if (guardarAnimalService.getState() == State.READY) {
-			System.out.println("antes del estado start: " + guardarAnimalService.getState());
 			guardarAnimalService.start();
-			System.out.println("despues del estado start: " + guardarAnimalService.getState());
 
 		} else {
 			if (guardarAnimalService.getState() == State.SUCCEEDED) {
-				System.out.println("Entre al if del succeeded de guardar animal: " + guardarAnimalService.getState());
 				guardarAnimalService.restart();
 			}
 		}
@@ -662,13 +671,9 @@ public class PalcoController {
 		protected Task<TropaReservada> createTask() {
 			return new Task<TropaReservada>() {
 				protected TropaReservada call() throws Exception {
-					System.out.println("Entre al task cuando cambio procedenciaaaaaaa");
 					TropaReservada tropaReservada = null;
 
-					System.out.println("Procedencia combo boxxxxxx" + procedenciaBean.getValue());
 					int idProcedencia = procedenciaBean.getValue().getIdProcedencia();
-					System.out.println("Parametro al readUrl: " + JSON_URL_SIGUIENTE_NUMERO_TROPA + idProcedencia);
-					System.out.println("Entrando en el Task fetchNumeroTropa");
 					try {
 						Gson gson = new Gson();
 						tropaReservada = gson.fromJson(readUrl(JSON_URL_SIGUIENTE_NUMERO_TROPA + idProcedencia),
@@ -677,7 +682,6 @@ public class PalcoController {
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
-					System.out.println("Tropa reservada de Taskkkkkk" + tropaReservada);
 					return tropaReservada;
 				}
 			};
@@ -709,7 +713,6 @@ public class PalcoController {
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
-					System.out.println("el resultado de guardar la tropa nueva: " + tropaBeanResultado);
 					GuardarTropaService.this.setTropaBean(tropaBeanResultado);
 					return tropaBeanResultado;
 				}
@@ -730,7 +733,6 @@ public class PalcoController {
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
-					System.out.println("Obtener siguiente garron: " + animalBean);
 					return animalBean;
 				}
 			};
@@ -763,7 +765,6 @@ public class PalcoController {
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
-					System.out.println("Obtengo el animal bean guardado: " + animalBeanResultado);
 					return animalBeanResultado;
 				}
 			};
@@ -823,23 +824,16 @@ public class PalcoController {
 		protected Task<Boolean> createTask() {
 			return new Task<Boolean>() {
 				protected Boolean call() throws Exception {
-					System.out.println("Entre al task cuando verifico numero tropa");
 
 					try {
 						Gson gson = new Gson();
 						JsonObject gson1 = gson.fromJson(
 								readUrl(JSON_URL_VERIFICAR_NUMERO_TROPA + getNroTropa() + "/" + getIdProcedencia()),
 								JsonObject.class);
-
-						System.out.println("======================");
-						System.out.println("viendo si devolvemos un booleano" + gson1.get("result").getAsBoolean());
-						System.out.println("======================");
 						return gson1.get("result").getAsBoolean();
-
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
-
 					return false;
 				}
 			};
@@ -861,17 +855,11 @@ public class PalcoController {
 		protected Task<Boolean> createTask() {
 			return new Task<Boolean>() {
 				protected Boolean call() throws Exception {
-					System.out.println("Entre al task cuando verifico garron modificado");
-
 					try {
 						Gson gson = new Gson();
 						JsonObject gson1 = gson.fromJson(
 								readUrl(JSON_URL_VERIFICAR_NUMERO_GARRON_MODIFICADO + getNroGarron()),
 								JsonObject.class);
-
-						System.out.println("======================");
-						System.out.println("viendo si devolvemos un booleano" + gson1.get("result").getAsBoolean());
-						System.out.println("======================");
 						return gson1.get("result").getAsBoolean();
 
 					} catch (Exception e) {
@@ -895,7 +883,6 @@ public class PalcoController {
 	 */
 	private static String readUrl(String urlString) throws Exception {
 		BufferedReader reader = null;
-		System.out.println("url " + urlString);
 		try {
 			URL url = new URL(urlString);
 			reader = new BufferedReader(new InputStreamReader(url.openStream()));
@@ -904,8 +891,6 @@ public class PalcoController {
 			char[] chars = new char[1024];
 			while ((read = reader.read(chars)) != -1)
 				buffer.append(chars, 0, read);
-
-			System.out.println("Estoy en el readUrl devolviendo " + buffer.toString());
 			return buffer.toString();
 		} finally {
 			if (reader != null)
@@ -936,13 +921,8 @@ public class PalcoController {
 		wr.close();
 
 		int responseCode = con.getResponseCode();
-		// System.out.println("\nSending 'POST' request to URL : " + url);
-		// System.out.println("Post parameters : " + urlParameters);
-		System.out.println("Response Code : " + responseCode);
-
 		BufferedReader reader = null;
 		try {
-			System.out.println();
 			reader = new BufferedReader(new InputStreamReader(con.getInputStream()));
 			StringBuffer buffer = new StringBuffer();
 			int read;
@@ -951,7 +931,6 @@ public class PalcoController {
 				buffer.append(chars, 0, read);
 
 			String tropa = buffer.toString();
-			System.out.println("metodo writeurl despues de haber guardado: " + tropa);
 			return tropa;
 
 		} finally {
