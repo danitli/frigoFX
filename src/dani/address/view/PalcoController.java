@@ -94,11 +94,11 @@ public class PalcoController {
 
 	@FXML
 	private Button inicializarFaenaButton;
-	
+
 	@FXML
 	private Button imprimirEtiqueta;
-	
-	@FXML 
+
+	@FXML
 	private Button reservarGarronButton;
 
 	public List<ToggleButton> botonesCategoria = new ArrayList<ToggleButton>();
@@ -119,8 +119,8 @@ public class PalcoController {
 	private static final String JSON_URL_OBTENER_GARRON = "http://localhost:8080/frigorifico/rest/obtener_siguiente_garron";
 	private static final String JSON_URL_VERIFICAR_NUMERO_TROPA = "http://localhost:8080/frigorifico/rest/verificar_tropa_faenada/";
 	private static final String JSON_URL_VERIFICAR_NUMERO_GARRON_MODIFICADO = "http://localhost:8080/frigorifico/rest/verificar_numero_garron_modificado/";
+	private static final String JSON_URL_RESETEAR_NUMERO_TROPA = "http://localhost:8080/frigorifico/rest/resetear_numero_tropa/";
 	
-
 	private ExecutorService executorService = Executors.newCachedThreadPool();
 
 	private ObtenerSiguienteNroTropaService obtenerSiguienteNroTropaService = new ObtenerSiguienteNroTropaService();
@@ -130,9 +130,10 @@ public class PalcoController {
 	private GuardarAnimalService guardarAnimalService = new GuardarAnimalService();
 	private VerificarTropaFaenadaService verificarTropaFaenadaService = new VerificarTropaFaenadaService();
 	private VerificarNumeroGarronModificadoService verificarNumeroGarronModificadoService = new VerificarNumeroGarronModificadoService();
+	private ResetearNumeroTropaService resetearNumeroTropaService = new ResetearNumeroTropaService();
 	
 	private List<Integer> garronesReservados = new ArrayList<Integer>();
-	
+
 	private TropaBean tropaBeanPalcoController = new TropaBean();
 
 	/**
@@ -149,7 +150,7 @@ public class PalcoController {
 	@FXML
 	private void initialize() {
 
-		//FORMATO solo numeros del campo texto
+		// FORMATO solo numeros del campo texto
 		pesoAnimal.textProperty().addListener(new ChangeListener<String>() {
 			@Override
 			public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
@@ -173,7 +174,7 @@ public class PalcoController {
 				}
 			}
 		});
-		
+
 		numeroGarron.textProperty().addListener(new ChangeListener<String>() {
 			@Override
 			public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
@@ -186,12 +187,25 @@ public class PalcoController {
 			}
 		});
 
-		
 		obtenerSiguienteNroTropaService.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
 			@Override
 			public void handle(WorkerStateEvent t) {
 				tropaReservada = obtenerSiguienteNroTropaService.getValue();
 				numeroTropa.setText(new Integer(tropaReservada.obtenerSiguienteNroDeTropa()).toString());
+			}
+		});
+		
+		resetearNumeroTropaService.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
+			@Override
+			public void handle(WorkerStateEvent t) {
+				if (resetearNumeroTropaService.getValue()) {
+					
+					Alert alert = new Alert(AlertType.INFORMATION);
+					alert.setTitle("Información");
+					alert.setHeaderText("Faena Cancelada");
+					alert.setContentText("La faena no se ha iniciado");
+					alert.showAndWait();
+				}
 			}
 		});
 
@@ -237,7 +251,7 @@ public class PalcoController {
 					botonesCategoria.add(boton);
 					categoriaContainer.getChildren().add(boton);
 				}
-				((ToggleButton)(categoriaContainer.getChildren().get(0))).setSelected(true);
+				((ToggleButton) (categoriaContainer.getChildren().get(0))).setSelected(true);
 			}
 		});
 		verificarTropaFaenadaService.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
@@ -254,7 +268,7 @@ public class PalcoController {
 				}
 			}
 		});
-		
+
 		verificarNumeroGarronModificadoService.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
 			@Override
 			public void handle(WorkerStateEvent t) {
@@ -263,12 +277,13 @@ public class PalcoController {
 					Alert alert = new Alert(AlertType.ERROR);
 					alert.setTitle("Error Dialog");
 					alert.setHeaderText("Numero de garron Incorrecto");
-					alert.setContentText("El garron " + numeroGarron.getText() + " ya fue utilizado en el dia de la fecha");
+					alert.setContentText(
+							"El garron " + numeroGarron.getText() + " ya fue utilizado en el dia de la fecha");
 					alert.showAndWait();
 				}
 			}
 		});
-		
+
 		obtenerSiguienteNroTropaService.setExecutor(executorService);
 		guardarTropaService.setExecutor(executorService);
 		obtenerSiguienteGarronService.setExecutor(executorService);
@@ -276,7 +291,8 @@ public class PalcoController {
 		cargarCategoriasSegunEspecieService.setExecutor(executorService);
 		verificarTropaFaenadaService.setExecutor(executorService);
 		verificarNumeroGarronModificadoService.setExecutor(executorService);
-		
+		resetearNumeroTropaService.setExecutor(executorService);
+
 		segundoPanel.setDisable(true);
 		tercerPanel.setDisable(true);
 
@@ -301,13 +317,13 @@ public class PalcoController {
 				}
 			}
 		});
-		
+
 		numeroGarron.focusedProperty().addListener(new ChangeListener<Boolean>() {
 			@Override
 			public void changed(ObservableValue<? extends Boolean> arg0, Boolean oldPropertyValue,
 					Boolean newPropertyValue) {
 				if (newPropertyValue) {
-					 imprimirEtiqueta.setDisable(false);
+					imprimirEtiqueta.setDisable(false);
 				} else {
 					verificarNumeroGarronModificado();
 
@@ -333,7 +349,7 @@ public class PalcoController {
 	@FXML
 	private void handleInicializarFaena() {
 		garronesReservados.clear();
-		
+
 		EspecieBean selectedEspecieBean = (EspecieBean) especie.getSelectionModel().getSelectedItem();
 		ProcedenciaBean selectedProcedenciaBean = (ProcedenciaBean) procedencia.getSelectionModel().getSelectedItem();
 
@@ -344,6 +360,8 @@ public class PalcoController {
 			// TODO esto es chamuyo ARREGLAR!!!!
 			tropaBeanPalcoController.setEstablecimientoId(1);
 			tropaBeanPalcoController.setNumeroTropa(Integer.parseInt(numeroTropa.getText()));
+
+			tropaBeanPalcoController.setAnimales(new ArrayList<Integer>());
 
 			// Guardar tropa te devuelve la tropa guardada con la fecha faena y
 			// el id tropa
@@ -386,10 +404,10 @@ public class PalcoController {
 
 		if (!pesoAnimal.getText().isEmpty()) {
 			Double peso = Double.parseDouble(pesoAnimal.getText().replace(",", "."));
-			
+
 			boolean cabezaAnimalEntera = ((RadioButton) cabeza.getSelectedToggle()).getText()
 					.equalsIgnoreCase("Entera");
-			
+
 			int garron = Integer.parseInt(numeroGarron.getText());
 
 			AnimalBean animalBeanAGuardar = new AnimalBean();
@@ -399,6 +417,8 @@ public class PalcoController {
 			animalBeanAGuardar.setPeso(peso);
 			animalBeanAGuardar.setIdTropa(tropaBeanPalcoController.getIdTropa());
 			guardarAnimal(animalBeanAGuardar);
+
+			tropaBeanPalcoController.agregarAnimal(animalBeanAGuardar.getIdAnimal());
 			pesoAnimal.setText("");
 
 			Etiqueta etiqueta = new Etiqueta();
@@ -415,7 +435,7 @@ public class PalcoController {
 			alert.showAndWait();
 		}
 	}
-	
+
 	@FXML
 	private void handleReservarGarron() {
 
@@ -431,10 +451,9 @@ public class PalcoController {
 		if (!pesoAnimal.getText().isEmpty()) {
 			peso = Double.parseDouble(pesoAnimal.getText().replace(",", "."));
 		}
-		
-		boolean cabezaAnimalEntera = ((RadioButton) cabeza.getSelectedToggle()).getText()
-				.equalsIgnoreCase("Entera");
-		
+
+		boolean cabezaAnimalEntera = ((RadioButton) cabeza.getSelectedToggle()).getText().equalsIgnoreCase("Entera");
+
 		int garron = Integer.parseInt(numeroGarron.getText());
 
 		AnimalBean animalBeanAGuardar = new AnimalBean();
@@ -449,34 +468,65 @@ public class PalcoController {
 		garronesReservados.add(garron);
 	}
 
-
 	@FXML
 	private void handleFinalizarFaena() {
-		
-		segundoPanel.setDisable(true);
 
-		if (!garronesReservados.isEmpty()){
-			Joiner joiner = Joiner.on(", ");
-			
+		if (tropaBeanPalcoController.getAnimales().size() == 0) {
+
 			Alert alert = new Alert(AlertType.CONFIRMATION);
-			alert.setTitle("Garrones Incompletos");
-			alert.setHeaderText("Los garrones: " + joiner.join(garronesReservados) + " han quedado sin faenar.");
-			
-			alert.setContentText("¿Desea faenarlos ahora?");
+			alert.setTitle("Tropa VACÍA");
+			alert.setHeaderText("Se abortará la faena de la tropa actual.");
+			alert.setContentText("¿Desea continuar?");
 
 			Optional<ButtonType> result = alert.showAndWait();
-			if (result.get() == ButtonType.OK){
-				segundoPanel.setDisable(false);
-				numeroGarron.setText(garronesReservados.remove(0).toString());
+			if (result.get() == ButtonType.OK) {
+				resetearNroTropa();
+				/*
+				 * Integer garronAnterior =
+				 * Integer.parseInt(numeroTropa.getText());
+				 * numeroTropa.setText(garronAnterior.toString());
+				 */
+				tropaBeanPalcoController = new TropaBean();
+				numeroGarron.setText("");
+				pesoAnimal.setText("");
+				segundoPanel.setDisable(true);
+				primerPanel.setDisable(false);
+				tercerPanel.setDisable(true);
+
+			}
+
+		} else {
+			if (!garronesReservados.isEmpty()) {
+				Joiner joiner = Joiner.on(", ");
+
+				Alert alert = new Alert(AlertType.CONFIRMATION);
+				alert.setTitle("Garrones Incompletos");
+				alert.setHeaderText("Los garrones: " + joiner.join(garronesReservados) + " han quedado sin faenar.");
+
+				alert.setContentText("¿Desea faenarlos ahora?");
+				Optional<ButtonType> result = alert.showAndWait();
+
+				if (result.get() == ButtonType.OK) {
+					numeroGarron.setText(garronesReservados.remove(0).toString());
+				} else {
+					tropaBeanPalcoController = new TropaBean();
+					numeroGarron.setText("");
+					pesoAnimal.setText("");
+					primerPanel.setDisable(false);
+					segundoPanel.setDisable(true);
+					tercerPanel.setDisable(true);
+
+					calcularSiguienteNroTropa();
+				}
 			} else {
 				tropaBeanPalcoController = new TropaBean();
 				numeroGarron.setText("");
-
-				segundoPanel.setDisable(true);
+				pesoAnimal.setText("");
 				primerPanel.setDisable(false);
+				segundoPanel.setDisable(true);
+				tercerPanel.setDisable(true);
 
 				calcularSiguienteNroTropa();
-				tercerPanel.setDisable(true);
 			}
 		}
 	}
@@ -514,7 +564,7 @@ public class PalcoController {
 			@Override
 			public void handle(WorkerStateEvent t) {
 				procedenciaList = FXCollections.observableArrayList(fetchListProcedencias.getValue());
-				
+
 				procedencia.setItems(procedenciaList);
 				for (ProcedenciaBean e : procedenciaList) {
 					if (e.getDescripcion().equalsIgnoreCase("Estancias")) {
@@ -545,6 +595,17 @@ public class PalcoController {
 		} else {
 			if (obtenerSiguienteNroTropaService.getState() == State.SUCCEEDED) {
 				obtenerSiguienteNroTropaService.restart();
+			}
+		}
+	}
+	
+	private void resetearNroTropa() {
+		resetearNumeroTropaService.setProcedenciaBean(procedencia);
+		if (resetearNumeroTropaService.getState() == State.READY) {
+			resetearNumeroTropaService.start();
+		} else {
+			if (resetearNumeroTropaService.getState() == State.SUCCEEDED) {
+				resetearNumeroTropaService.restart();
 			}
 		}
 	}
@@ -599,11 +660,11 @@ public class PalcoController {
 			}
 		}
 	}
-	
+
 	public void verificarNumeroGarronModificado() {
 		if (!numeroGarron.getText().isEmpty()) {
 			verificarNumeroGarronModificadoService.setNroGarron(Integer.parseInt(numeroGarron.getText()));
-			
+
 			if (verificarNumeroGarronModificadoService.getState() == State.READY) {
 				verificarNumeroGarronModificadoService.start();
 
@@ -687,6 +748,41 @@ public class PalcoController {
 			};
 		}
 	}
+	
+	
+	
+	public static class ResetearNumeroTropaService extends Service<Boolean> {
+		private ComboBox<ProcedenciaBean> procedenciaBean = null;
+
+		public ComboBox<ProcedenciaBean> getProcedenciaBean() {
+			return procedenciaBean;
+		}
+
+		public void setProcedenciaBean(ComboBox<ProcedenciaBean> procedenciaBean) {
+			this.procedenciaBean = procedenciaBean;
+		}
+
+		protected Task<Boolean> createTask() {
+			return new Task<Boolean>() {
+				protected Boolean call() throws Exception {
+					Boolean resultado = false;
+
+					int idProcedencia = procedenciaBean.getValue().getIdProcedencia();
+					try {
+						Gson gson = new Gson();
+						JsonObject gson1 = gson.fromJson(
+												readUrl(JSON_URL_RESETEAR_NUMERO_TROPA + idProcedencia),
+												JsonObject.class);
+						return gson1.get("result").getAsBoolean();
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+					return false;
+				}
+			};
+		}
+	}
+	
 
 	public static class GuardarTropaService extends Service<TropaBean> {
 		protected TropaBean tropaBean = null;
@@ -842,7 +938,7 @@ public class PalcoController {
 
 	public static class VerificarNumeroGarronModificadoService extends Service<Boolean> {
 		protected int nroGarron;
-	
+
 		public int getNroGarron() {
 			return nroGarron;
 		}
@@ -851,7 +947,6 @@ public class PalcoController {
 			this.nroGarron = nroGarron;
 		}
 
-		
 		protected Task<Boolean> createTask() {
 			return new Task<Boolean>() {
 				protected Boolean call() throws Exception {
@@ -871,6 +966,7 @@ public class PalcoController {
 			};
 		}
 	}
+
 	// *********************
 	// GET Y POST, read y write url
 	// *********************
