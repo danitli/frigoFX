@@ -136,6 +136,7 @@ public class PalcoController {
 
 	private TropaBean tropaBeanPalcoController = new TropaBean();
 
+	private Boolean faenandoTropasReservadas = false;
 	/**
 	 * The constructor. The constructor is called before the initialize()
 	 * method.
@@ -222,8 +223,19 @@ public class PalcoController {
 
 			@Override
 			public void handle(WorkerStateEvent t) {
-				animalBean = obtenerSiguienteGarronService.getValue();
-				numeroGarron.setText(new Integer(animalBean.getGarron()).toString());
+				if (!faenandoTropasReservadas){
+					animalBean = obtenerSiguienteGarronService.getValue();
+					numeroGarron.setText(new Integer(animalBean.getGarron()).toString());
+				}else {
+					garronesReservados.remove(0);
+					if (!garronesReservados.isEmpty()){
+						numeroGarron.setText(garronesReservados.get(0).toString());
+					} else{
+						faenandoTropasReservadas = false;
+						animalBean = obtenerSiguienteGarronService.getValue();
+						numeroGarron.setText(new Integer(animalBean.getGarron()).toString());
+					}
+				}			
 			}
 		});
 
@@ -348,6 +360,7 @@ public class PalcoController {
 
 	@FXML
 	private void handleInicializarFaena() {
+		faenandoTropasReservadas = false;
 		garronesReservados.clear();
 
 		EspecieBean selectedEspecieBean = (EspecieBean) especie.getSelectionModel().getSelectedItem();
@@ -501,13 +514,14 @@ public class PalcoController {
 
 				Alert alert = new Alert(AlertType.CONFIRMATION);
 				alert.setTitle("Garrones Incompletos");
-				alert.setHeaderText("Los garrones: " + joiner.join(garronesReservados) + " han quedado sin faenar.");
+				alert.setHeaderText("El/los garron/es: " + joiner.join(garronesReservados) + " ha/n quedado sin faenar.");
 
 				alert.setContentText("¿Desea faenarlos ahora?");
 				Optional<ButtonType> result = alert.showAndWait();
 
-				if (result.get() == ButtonType.OK) {
-					numeroGarron.setText(garronesReservados.remove(0).toString());
+				if (result.get() == ButtonType.OK){
+					faenandoTropasReservadas = true;
+					numeroGarron.setText(garronesReservados.get(0).toString());
 				} else {
 					tropaBeanPalcoController = new TropaBean();
 					numeroGarron.setText("");
